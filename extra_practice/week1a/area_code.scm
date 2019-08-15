@@ -1,0 +1,6 @@
+(define (area_code x)
+  (if (equal? x 415)
+      (word 'san 'francisco)
+      (if(equal? x 510)
+	 (word 'berkeley)
+	 (word 'where-you-from))))
