@@ -29,6 +29,27 @@
 		
 (define stop-at-17 (lambda (customer-hand-so-far dealer-up-card) (if (< (best-total customer-hand-so-far) 17) #t #f)))
 
+(define stop-at (lambda (n) : (lambda (customer-hand-so-far dealer-up-card) (if (< (best-total customer-hand-so-far) n) #t #f))))
+
+(define dealer-sensitive (lambda (customer-hand-so-far dealer-up-card) (if (or (and (member? (bl dealer-up-card) '(a 7 8 9 10 j q k)) ((stop-at 17) customer-hand-so-far dealer-up-card)) 
+																		       (and (member? (bl dealer-up-card) '(2 3 4 5 6)) ((stop-at 12) customer-hand-so-far dealer-sensitive))) #t #f)))
+																			  
+(define valentine (lambda (customer-hand-so-far dealer-up-card) (if (member? 'h (every (lambda (x) (bf x)) customer-hand-so-far)) 
+																		 ((stop-at 19) customer-hand-so-far dealer-up-card) 
+																		 ((stop-at 17) customer-hand-so-far dealer-up-card))))
+																		
+																		
+(define suit-strategy (lambda (suit strategy_to_use_dnt strategy_to_use_d) (lambda (customer-hand-so-far dealer-up-card) (if (member? suit (every (lambda (x) (bf x)) customer-hand-so-far)) 
+																		(strategy_to_use_d customer-hand-so-far dealer-up-card)
+																		(strategy_to_use_dnt customer-hand-so-far dealer-up-card)))))
+																		
+(define majority (lambda (strat1 strat2 strat3) (lambda (customer-hand-so-far dealer-up-card) 
+	(if 
+		(<= 2 (+ (if (equal? #t (strat1 customer-hand-so-far dealer-up-card)) 1 0) (if (equal? #t (strat2 customer-hand-so-far dealer-up-card)) 1 0) (if (equal? #t (strat3 customer-hand-so-far dealer-up-card)) 1 0))) #t #f))))
+
+
+(define reckless (lambda (strat1) (lambda (customer-hand-so-far dealer-up-card) (if (strat1 customer-hand-so-far dealer-up-card) #t #f)))) 
+
 (define (best-total hand-of-cards)
 		(define (best-total-running hand-of-cards running-total)
 			(cond ((empty? hand-of-cards) running-total)
