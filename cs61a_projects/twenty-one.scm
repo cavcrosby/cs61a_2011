@@ -23,9 +23,9 @@
     (define (best-total hand-of-cards)
 		(define (best-total-running hand-of-cards running-total)
 			(cond ((empty? hand-of-cards) running-total)
-				  ((equal? (bl (first hand-of-cards)) 'a) (if (< 21 (+ 11 (best-total-running (bf hand-of-cards) running-total))) 
-					(+ 1 (best-total-running (bf hand-of-cards) running-total))
-					(+ 11 (best-total-running (bf hand-of-cards) running-total)))) ; really inefficient calling that same procedure
+				  ((equal? (bl (first hand-of-cards)) 'a) 
+					(let ((new-running-total (+ 11 (best-total-running (bf hand-of-cards) running-total)))) 
+						(if (< 21 new-running-total) (- new-running-total 10) new-running-total)))
 				  (else (best-total-running (bf hand-of-cards) (+ running-total (bl (first hand-of-cards)))))))
 		(best-total-running hand-of-cards 0))
 
