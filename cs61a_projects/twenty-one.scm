@@ -48,7 +48,7 @@
 		(<= 2 (+ (if (equal? #t (strat1 customer-hand-so-far dealer-up-card)) 1 0) (if (equal? #t (strat2 customer-hand-so-far dealer-up-card)) 1 0) (if (equal? #t (strat3 customer-hand-so-far dealer-up-card)) 1 0))) #t #f))))
 
 
-(define reckless (lambda (strat1) (lambda (customer-hand-so-far dealer-up-card) (if (strat1 customer-hand-so-far dealer-up-card) #t #f)))) 
+(define reckless (lambda (strat1) (lambda (customer-hand-so-far dealer-up-card) (if (and (strat1 customer-hand-so-far dealer-up-card) (< 21 (best-total customer-hand-so-far))) #t #f)))) 
 
 (define (best-total hand-of-cards)
 		(define (best-total-running hand-of-cards running-total)
