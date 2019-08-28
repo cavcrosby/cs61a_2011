@@ -86,7 +86,7 @@
 		(* (+ (width rectangle y-point)(length rectangle x-point)) 2)))
 		
 (define (area rectangle)
-	(if (equal? (y-point (get-coordinate rectangle)) (y-point (get-coordinate (other-coordinates rectangle)))) ; if we have vertical parallel rectangle ; redudant checking if parallel rectangle or not
+	(if (equal? (y-point (get-coordinate rectangle)) (y-point (get-coordinate (other-coordinates rectangle)))) ; if we have vertical parallel rectangle ; redundant checking if parallel rectangle or not
 		(* (width rectangle x-point) (length rectangle y-point))
 		(* (width rectangle y-point) (length rectangle x-point))))
 
