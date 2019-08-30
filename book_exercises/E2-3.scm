@@ -1,4 +1,4 @@
-(define (make-point x y) (cons x y))
+(define (make-point x y) (cons x y)) ; can also be written as (define make-point con)
 
 (define (x-point point) (car point))
 
