@@ -5,3 +5,4 @@
 		((>= counter mark) (apply append (append new-ls (list item (car ls))) (list (cdr ls))))
 		(else (insert-after-helper item mark (+ 1 counter) (cdr ls) (append new-ls (list (car ls)))))))
 	(insert-after-helper item mark 0 (cdr ls) (list (car ls))))
+	

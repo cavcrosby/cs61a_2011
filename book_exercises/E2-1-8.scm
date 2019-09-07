@@ -14,3 +14,8 @@
 (define current-pair-next-points-to cdr)
 
 (define (adjoin first_pair) (lambda (next_pair) (cons first_pair next_pair)))
+
+(define (reverse list-fp)
+	(if (null? list-fp)
+		()
+		(append (reverse (cdr list-fp)) (list (car list-fp)))))
