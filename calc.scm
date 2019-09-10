@@ -7,6 +7,7 @@
 (define (calc-eval exp)
 	(cond ((number? exp) exp)
 		((list? exp) (calc-apply (car exp) (map calc-eval (cdr exp))))
+		;((list? exp) (calc-apply (car exp) (cdr exp))) ; removing the map calc-eval will result in normal order
 		(else (error "Calc: bad expression:" exp))))
 
 (define (calc-apply fn args)
