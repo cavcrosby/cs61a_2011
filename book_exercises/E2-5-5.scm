@@ -1,0 +1,2 @@
+; The first quote seen is denoting that the next set of characters are part of a word. The next quote is seen as part of the word, 
+; while this is violating the data abstraction, car is taking the first letter of the word which is quote.
