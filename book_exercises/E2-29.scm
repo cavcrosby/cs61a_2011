@@ -1,10 +1,14 @@
+; (define (make-mobile left right)
+	; (list left right))
+	
+; (define (make-branch length structure)
+	; (list length structure))
+
 (define (make-mobile left right)
-	(list left right))
+	(cons left right))
 	
 (define (make-branch length structure)
-	(list length structure))
-
-
+	(cons length structure))
 
 ;test cases
 (define t1 (make-mobile 
@@ -81,13 +85,21 @@
 					))))
 ;a
 
+; (define (left-branch mobile) (car mobile))
+
+; (define (right-branch mobile) (cadr mobile))
+
+; (define (branch-length branch) (car branch))
+
+; (define (branch-structure branch) (cadr branch))
+
 (define (left-branch mobile) (car mobile))
 
-(define (right-branch mobile) (cadr mobile))
+(define (right-branch mobile) (cdr mobile))
 
 (define (branch-length branch) (car branch))
 
-(define (branch-structure branch) (cadr branch))
+(define (branch-structure branch) (cdr branch))
 
 (define (mobile? x) (not (number? x)))
 
@@ -113,3 +125,11 @@
 	(not (memq #f (list(balanced-helper (left-branch mobile) (right-branch mobile))))))
 	
 (define b balanced-mobile?)
+
+;d
+	
+; To my surprise, all I needed to change was the selectors
+;
+;
+;
+;
