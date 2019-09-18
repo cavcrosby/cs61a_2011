@@ -1,3 +1,23 @@
+;(load "picture.scm")
+; Utility Code
+(define (draw-line v1 v2)
+  (penup)
+  (setxy (- (* (xcor-vect v1) 200) 100)
+	 (- (* (ycor-vect v1) 200) 100))
+  (pendown)
+  (setxy (- (* (xcor-vect v2) 200) 100)
+	 (- (* (ycor-vect v2) 200) 100)))
+	 
+	 
+(define full-frame (make-frame (make-vect -0.5 -0.5)
+			       (make-vect 2 0)
+			       (make-vect 0 2)))
+; Other Code
+
+(define (flipped-pairs painter)
+  (let ((painter2 (beside painter (flip-vert painter))))
+    (below painter2 painter2)))
+
 (define (right-split painter n)
 	(if (= n 0)
 		painter
@@ -8,6 +28,12 @@
 	(let ((quarter (corner-split painter n)))
 		(let ((half (beside (flip-horiz quarter) quarter)))
 			(below (flip-vert half) half))))
+			
+(define (square-of-four tl tr bl br)
+  (lambda (painter)
+    (let ((top (beside (tl painter) (tr painter)))
+	  (bottom (beside (bl painter) (br painter))))
+      (below bottom top))))
 			
 (define (corner-split painter n)
 	(if (= n 0)
