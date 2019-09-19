@@ -8,10 +8,6 @@
   (setxy (- (* (xcor-vect v2) 200) 100)
 	 (- (* (ycor-vect v2) 200) 100)))
 	 
-	 
-(define full-frame (make-frame (make-vect -0.5 -0.5)
-			       (make-vect 2 0)
-			       (make-vect 0 2)))
 ; Other Code
 
 (define (flipped-pairs painter)
@@ -118,27 +114,33 @@
 
 (define start-segment car)
 
-(define end-segment)
+(define end-segment cdr)
 
 ; E2.49 a, b, c , and d
 
 ;a
+; (define (outline frame)
+	; (segments->painter (list (make-segment (origin-frame frame) (edge1-frame frame)) 
+							 ; (make-segment (origin-frame frame) (edge2-frame frame))
+							 ; (make-segment (edge1-frame frame) (intersection (edge1-frame frame) (edge2-frame frame)))
+							 ; (make-segment (intersection (edge1-frame frame) (edge2-frame frame)) (edge2-frame frame)))))
+							 
 (define (outline frame)
-	(segments->painter (list (make-segment (origin-frame frame) (edge1-frame frame)) 
-							 (make-segment (origin-frame frame) (edge2-frame frame))
-							 (make-segment (edge1-frame frame) (intersection edge1 edge2))
-							 (make-segment (intersection (edge1-frame frame) (edge2-frame frame)) (edge2-frame frame)))))
+	(segments->painter (list (make-segment (make-vect 0.0 0.0) (make-vect 0.0 1.0))
+								(make-segment (make-vect 0.0 0.0) (make-vect 1.0 0.0))
+								)))
 
 ;b						 
-(define (X frame)
-	(segments->painter (list (make-segment (origin-frame frame) (intersection (edge1-frame frame) (edge2-frame frame)))
-							 (make-segment (edge1-frame frame) (edge2-frame frame)))))
+; (define (X frame)
+	; (segments->painter (list (make-segment (origin-frame frame) (intersection (edge1-frame frame) (edge2-frame frame)))
+							 ; (make-segment (edge1-frame frame) (edge2-frame frame)))))
+							 
 
 ;c						 
 (define (diamond frame)
 	(segments->painter (let ((origin-edge1-vec (make-vect (xcor-vect (origin-frame frame)) (/ (+ (ycor-vect (origin-frame frame)) (ycor-vect (edge1-frame frame))) 2))) ; x cord is of origin (or could have been edge1)
 						    (edge1-intersection-vec (make-vect (/ (+ (xcor-vect (edge1-frame frame)) (xcor-vect (intersection (edge1-frame frame) (edge2-frame frame)))) 2) (ycor-vect (intersection (edge1-frame frame) (edge2-frame frame))))) ; y cord is of intersection (or could have been edge1)
-							(intersection-edge2-vec (make-vect (xcor-vect (edge2 frame)) (/ (+ (ycor-vect (intersection (edge1-frame frame) (edge2-frame frame))) (ycor-vect (edge2-frame frame))) 2))) ; x cord is of edge2 (or could have been intersection)
+							(intersection-edge2-vec (make-vect (xcor-vect (edge2-frame frame)) (/ (+ (ycor-vect (intersection (edge1-frame frame) (edge2-frame frame))) (ycor-vect (edge2-frame frame))) 2))) ; x cord is of edge2 (or could have been intersection)
 							(edge2-origin-vec (make-vect (/ (+ (xcor-vect (edge2-frame frame)) (xcor-vect (origin-frame frame))) 2) (ycor-vect (origin-frame frame))))) ; y cord is of origin (or could have been edge2)
 							(list
 								(make-segment origin-edge1-vec edge1-intersection-vec)
@@ -147,7 +149,7 @@
 								(make-segment edge2-origin-vec origin-edge1-vec)))))
 
 ;d							
-(define (wave frame))
+;(define (wave frame))
 
 
 (define (transform-painter painter origin corner1 corner2)
@@ -202,3 +204,7 @@
 		(lambda (frame)
 		  (paint-below frame)
 		  (paint-above frame))))
+		  
+(define full-frame (make-frame (make-vect -0.5 -0.5)
+			       (make-vect 2 0)
+			       (make-vect 0 2)))
