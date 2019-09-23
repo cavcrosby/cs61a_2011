@@ -16,7 +16,7 @@ This is my attempt to complete the course 'CS61A' taught at Berkeley. This insta
 
 Unfortunately the homework answers for this course and semester might be impossible to find. I recommend looking at others' answers and doing comparisons.
 
-*Two other resources you can use (besides my repo):*
+*Three other resources you can use (besides my repo):*
   - Link 1: https://github.com/fgalassi/cs61a-sp11
   - Link 2: https://wizardbook.wordpress.com/solutions-index/
   - Link 3: http://www-inst.eecs.berkeley.edu/~instcd/inst-cd/classes/cs61a/lib/ (These are the programs used by the class, may or may not be exact)
