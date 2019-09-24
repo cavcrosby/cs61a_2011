@@ -1,0 +1,21 @@
+(define (substitute list_fp old_words new_words)
+	(define (replace list_r)
+		(cond ((null? list_r) '())
+			  ((not (equal? (memq list_r old_words) #f)) (list-ref new_words (index old_words list_r)))
+			  ((word? list_r) list_r)
+			  ((list? list_r) (cons (replace (car list_r)) (replace (cdr list_r))))
+			  (else (cons list_r (replace (cdr list_r))))))
+	(if (null? list_fp)
+		'()
+		(cons (replace (car list_fp)) (substitute (cdr list_fp) old_words new_words))))
+
+(define (index list_r element)
+	(define (index-helper list_r int)
+		(cond ((null? list_r) 0)
+			  ((equal? element (car list_r)) int)
+			  (else (index-helper (cdr list_r) (+ int 1)))))
+	(index-helper list_r 0))
+
+(define l '((lead guitar) (bass guitar) (rhythm guitar) drums))
+
+(define (guitar_to_flat lol) (substitute lol '(guitar lead bass rhythm drums) '(flat1 flat2 flat3 flat4 flat5)))
