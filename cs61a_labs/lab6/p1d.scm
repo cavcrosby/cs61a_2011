@@ -54,6 +54,11 @@
 	 (if (eval-1 (cadr exp))
 	     (eval-1 (caddr exp))
 	     (eval-1 (cadddr exp))))
+	((and-exp? exp)
+	 (cond ((eq? (cdr exp) '()) #t)
+		   ((not (eval-1 (cadr exp))) #f)
+		   ((eq? (cddr exp) '()) #t)
+		   (else (eval-1 (append (list (car exp)) (cddr exp))))))
 	((lambda-exp? exp) exp)
 	((pair? exp) (apply-1 (EVAL-1 (car exp))      ; eval the operator
 			      (map eval-1 (cdr exp))))
@@ -92,6 +97,7 @@
 
 (define quote-exp? (exp-checker 'quote))
 (define if-exp? (exp-checker 'if))
+(define and-exp? (exp-checker 'and))
 (define lambda-exp? (exp-checker 'lambda))
 
 
