@@ -6,33 +6,22 @@
 	
 	; constructors
 		
-	; (define (make-organization . divisions) (list divisions)) ; no name for organization
+	(define (make-organization identifier . divisions) (list identifier divisions))
 	
-	; (define (make-personnel-file . emp-records) (make emp-records)) ; division . emp-records
+	(define (make-division identifier . records) (list identifier records)) ; divisions are a personel file
 
-	; (define (make-emp-record . attrs) (make attrs)) ; emp . emp-attrs
+	(define (make-emp-record identifier . emp-record) (list identifier emp-record)) 
 
-	; (define (make-attr . args) (make args)) ; attr attr-value
+	(define (make-attr identifier attr-value) (list (list identifier attr-value)))
 	
 	; predicates
 	
-	(define (subtype? element-type in-element-type)
-		(equal? (index-of in-element-type types) (- (index-of element-type types) 1)))
-	; if element-type is division, while in-element-type is organization then it should return #t
-	; organization index is 0, division index is 1 (based on the tower)
+	(define (valid-type? type)
+		(if (equal? (index-of types type) -1) #t #f))
+			 
+	(define (of-requested-type? type container-type)
+		(equal? type container-type))
 	
-	(define (valid-types? element in-element)
-		(let ((in-element-type (type-tag in-element)) (element-type (type-tag element)))
-			 (cond ((equal? (index-of types in-element-type) -1) #f) 
-				   ((equal? (index-of types element-type) -1) #f)
-				   (else #t))))
-				   
-				   
-	(define (exist-in? element in-element)
-		(cond ((not (valid-types? element in-element)) (error "Unknown type(s) -- exist-in:" element in-element))
-			  ((not (subtype? element in-element)) (error "Element is not subtype in-element -- exist-in:" element in-element))
-			  (else (find element in-element))))
-				   
 	; selectors
 	
 	(define get-element car)
@@ -43,11 +32,10 @@
 	
 	(define type-tag car)
 	
-	(define (get-record division emp-record)
-		(let ((emp-record-found (exist-in? emp-record division)))
-			(if emp-record-found
-				emp-record-found
-				(error "Employee record does not exist -- get-record:" division emp-record))))
+	(define (get-record type container identifier)
+		(cond ((not (valid-type? type)) (error "Unknown type -- get-record:" type))
+		      ((not (of-requested-type? type (type-tag container))) (error "Data is not type of -- " type)) 
+			  (else (find identifier container))))
 	
 	; utility
 	
@@ -58,23 +46,29 @@
 				  (else (+ (index-of-helper (cdr lst) (+ 1 count))))))
 	  (index-of-helper lst 0))
 	
-	(define (find element in-element)
-		(cond ((null? in-element) '())
-			  ((equal? element (identifier (get-element in-element))) (get-element in-element))
-			  (else (find element (rest-of in-element)))))
+	(define (find identifier container)
+		(cond ((null? container) '())
+			  ((equal? identifier (identifier (get-element container))) (get-element container))
+			  (else (find identifier (rest-of container)))))
 	
 	;; interface to rest of the system
 	(define (tag type e) (attach-tag type e))
 	(put 'make '(organization)
-		(lambda (. divisions) (tag 'organization (list divisions))))
+		(lambda (identifier . divisions) (tag 'organization (make-organization identifier divisions))))
+	(put 'get-data '(organization)
+		(lambda (organization identifier) (get-record 'organization organization identifier)))
 	(put 'make '(division)
-		(lambda (. emp-records) (tag 'division (list emp-records))))
+		(lambda (identifier . emp-records) (tag 'division (make-division identifier emp-records))))
+	(put 'get-data '(division)
+		(lambda (division identifier) (get-record 'division division identifier)))
 	(put 'make '(emp-record)
-		(lambda (. emp-attrs) (tag 'emp-record (list emp-attrs))))
+		(lambda (identifier . emp-attrs) (tag 'emp-record (make-emp-record identifier emp-attrs))))
+	(put 'get-data '(emp-record)
+		(lambda (emp-record identifier) (get-record 'emp-record emp-record identifier)))
 	(put 'make '(attr)
-		(lambda (. attr-value) (tag 'attr (list attr-value))))
-	(put 'get-record '(emp-record)
-		(lambda (record division) (get-record record division)))
+		(lambda (identifier attr-value) (tag 'attr (make-attr identifier attr-value))))
+	(put 'get-data '(attr)
+		(lambda (identifier value) (get-record 'attr identifier value)))
 'done)
 
 
@@ -84,6 +78,16 @@
 
 ; package install
 (install-division-package)
+
+; interface procedures
+
+(define (make-organization-data type data identifier)
+	((get 'make '(type)) data identifier))
+
+(define (get-record type data identifier)
+	((get 'get-data '(type)) data identifier))
+	
+;;;;;;;;
 
 (define attr1 ((get 'make '(attr)) 'Salary '50000))
 (define attr2 ((get 'make '(attr)) 'Address '(298 Smith Road)))
