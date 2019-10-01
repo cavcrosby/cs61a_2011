@@ -46,6 +46,8 @@
 	(define type-tag car)
 	
 	; TODO ADD GETTERS FOR SUBTYPES, CONTENTS JUST GIVES ME THE DATA, E.G (cdar (contents org)) gives me the divisions
+	; ADD TRANSFORM FUNC FOR OTHERS TO USE?
+	
 	
 	(define (get-record type container identifier)
 		(cond ((not (valid-type? type)) (error "Unknown type -- get-record:" type))
