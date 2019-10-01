@@ -2,19 +2,32 @@
 
 	; Hierarchy Of Types
 	
-	(define types '(organization division emp-record attr))
+	(define types '(
+		(organization) 
+		(division) 
+		(emp-record) 
+		(attr)))
+	
+	; selectors for constructors
+	
+	(define assoicate cons)
+	
+	(define wrap list)
 	
 	; constructors
 		
-	(define (make-organization identifier . divisions) (list identifier divisions))
+	(define (make-organization identifier . divisions) (wrap (assoicate identifier divisions)))
 	
-	(define (make-division identifier . records) (list identifier records)) ; divisions are a personel file
+	(define (make-division identifier . records) (wrap (assoicate identifier records))) ; divisions are a personel file
 
-	(define (make-emp-record identifier . emp-record) (list identifier emp-record)) 
+	(define (make-emp-record identifier . emp-record) (wrap (assoicate identifier emp-record)))
 
-	(define (make-attr identifier attr-value) (list (list identifier attr-value)))
+	(define (make-attr identifier attr-value) (wrap (list identifier attr-value)))
 	
 	; predicates
+	
+	(define (subtype? type container-type)
+		(>= (index-of types container-type) (index-of types type)))
 	
 	(define (valid-type? type)
 		(if (equal? (index-of types type) -1) #t #f))
@@ -26,15 +39,21 @@
 	
 	(define get-element car)
 	
-	(define identifier car)
+	(define get-identifier car)
 	
 	(define rest-of cdr)
 	
 	(define type-tag car)
 	
+	; TODO ADD GETTERS FOR SUBTYPES, CONTENTS JUST GIVES ME THE DATA, E.G (cdar (contents org)) gives me the divisions
+	
 	(define (get-record type container identifier)
 		(cond ((not (valid-type? type)) (error "Unknown type -- get-record:" type))
-		      ((not (of-requested-type? type (type-tag container))) (error "Data is not type of -- " type)) 
+			  ((and 
+				(not (of-requested-type? type (type-tag container)))
+				(subtype? type (type-tag container)))
+					(get-record type (contents container) identifier))
+		      ((not (of-requested-type? type (type-tag container))) (error "Bad data object -- " (type-tag container))) 
 			  (else (find identifier container))))
 	
 	; utility
@@ -48,7 +67,7 @@
 	
 	(define (find identifier container)
 		(cond ((null? container) '())
-			  ((equal? identifier (identifier (get-element container))) (get-element container))
+			  ((equal? identifier (get-identifier (get-element container))) (get-element container))
 			  (else (find identifier (rest-of container)))))
 	
 	;; interface to rest of the system
@@ -82,18 +101,18 @@
 ; interface procedures
 
 (define (make-organization-data type data identifier)
-	((get 'make '(type)) data identifier))
+	((get 'make (append (list type) '())) data identifier))
 
 (define (get-record type data identifier)
-	((get 'get-data '(type)) data identifier))
+	((get 'get-data (append (list type) '())) data identifier))
 	
 ;;;;;;;;
 
 (define attr1 ((get 'make '(attr)) 'Salary '50000))
 (define attr2 ((get 'make '(attr)) 'Address '(298 Smith Road)))
 
-(define emp-record ((get 'make '(emp-record)) "Conner" attr1 attr2))
+(define emp-record ((get 'make '(emp-record)) 'Conner attr1 attr2))
 
-(define division ((get 'make '(division)) "Alpha" emp-record))
+(define division ((get 'make '(division)) 'Alpha emp-record))
 
-(define the-cool-guys ((get 'make '(organization)) division))
+(define org ((get 'make '(organization)) 'the-cool-guys division))
