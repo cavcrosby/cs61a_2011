@@ -10,23 +10,24 @@
 	
 	; selectors for constructors
 	
-	(define assoicate cons)
+	(define associate cons)
 	
 	(define wrap list)
 	
 	; constructors
 		
-	(define (make-organization identifier . divisions) (wrap (assoicate identifier divisions)))
+	(define (make-organization identifier . divisions) (associate identifier divisions)) ; organization is the highest data strucutre, no need to have organizations
+	; (organization 'identifier' (list of divisions))
 	
-	(define (make-division identifier . records) (wrap (assoicate identifier records))) ; divisions are a personel file
+	(define (make-division identifier . records) (associate identifier records)) ; divisions are a personel file, (division 'identifier' (list of emp-records))
 
-	(define (make-emp-record identifier . emp-record) (wrap (assoicate identifier emp-record)))
+	(define (make-emp-record identifier . attrs) (associate identifier attrs)) ; (emp-record 'identifier' (list of attrs))
 
-	(define (make-attr identifier attr-value) (wrap (list identifier attr-value)))
+	(define (make-attr identifier attr-value) (wrap identifier attr-value)) ; (attr ('identifier' attr-value))
 	
 	; predicates
 	
-	(define (subtype? type container-type)
+	(define (coercion? type container-type)
 		(>= (index-of types container-type) (index-of types type)))
 	
 	(define (valid-type? type)
@@ -34,29 +35,37 @@
 			 
 	(define (of-requested-type? type container-type)
 		(equal? type container-type))
+		
+	(define (one-item? container)
+		(equal? (length container) 3)) ; (data-object identifier data) we only have one data item of the data-object
 	
 	; selectors
 	
-	(define get-element car)
+	(define get-identifier cadr)
 	
-	(define get-identifier car)
+	(define get-identifier-attr caadr)
+	
+	(define type-tag car)
 	
 	(define rest-of cdr)
 	
-	(define type-tag car)
+	(define sub-type-contents caddr)
 	
 	; TODO ADD GETTERS FOR SUBTYPES, CONTENTS JUST GIVES ME THE DATA, E.G (cdar (contents org)) gives me the divisions
 	; ADD TRANSFORM FUNC FOR OTHERS TO USE?
 	
-	
-	(define (get-record type container identifier)
-		(cond ((not (valid-type? type)) (error "Unknown type -- get-record:" type))
-			  ((and 
-				(not (of-requested-type? type (type-tag container)))
-				(subtype? type (type-tag container)))
-					(get-record type (contents container) identifier))
-		      ((not (of-requested-type? type (type-tag container))) (error "Bad data object -- " (type-tag container))) 
-			  (else (find identifier container))))
+	(define (get-record type-desired container identifier) ; container should be of a specfic data object type, so all divisions, emp-records, or attributes
+		(cond ((not (valid-type? type-desired)) (error "Unknown type of record to get -- get-record:" type))
+			  ((and ; if we don't have the right data and we can perform coercion on the data, try again
+				(not (of-requested-type? 
+						type-desired 
+						(type-tag container)))
+				(coercion? 
+					type-desired 
+					(type-tag container)))
+						(apply append (map (lambda (subtype) (get-record type-desired subtype identifier)) (sub-type-contents container))))
+			  ((not (of-requested-type? type-desired (type-tag container))) '()) ; if we get to the bottom data type with no results, return '()
+			  (else (list (find identifier container)))))
 	
 	; utility
 	
@@ -67,10 +76,11 @@
 				  (else (+ (index-of-helper (cdr lst) (+ 1 count))))))
 	  (index-of-helper lst 0))
 	
-	(define (find identifier container)
-		(cond ((null? container) '())
-			  ((equal? identifier (get-identifier (get-element container))) (get-element container))
-			  (else (find identifier (rest-of container)))))
+	(define (find identifier container-row)
+		(cond ((null? container-row) '())
+			  ((and (equal? (type-tag container-row) 'attr) (equal? identifier (get-identifier-attr container-row))) container-row)
+			  ((and (not (equal? (type-tag container-row) 'attr)) (equal? identifier (get-identifier container-row))) container-row)
+			  (else (find identifier (rest-of container-row)))))
 	
 	;; interface to rest of the system
 	(define (tag type e) (attach-tag type e))
