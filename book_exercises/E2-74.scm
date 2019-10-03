@@ -42,12 +42,9 @@
 	
 	(define type-tag car)
 	
-	(define rest-of cdr)
-	
 	(define sub-type-contents caddr)
 	
-	; TODO ADD GETTERS FOR SUBTYPES, CONTENTS JUST GIVES ME THE DATA, E.G (cdar (contents org)) gives me the divisions
-	; ADD TRANSFORM FUNC FOR OTHERS TO USE?
+	; TODO ADD TRANSFORM FUNC FOR OTHERS TO USE?
 			   
 			   
 	(define (get-generic type-desired container identifier) ; container should be of a specfic data object type, so all divisions, emp-records, or attributes
@@ -124,7 +121,6 @@
 	
 ;d
 ;The only change to be made, will be that the new company will need to be added as a new division to Insatiable
-
 
 ;;;;;;;;
 
