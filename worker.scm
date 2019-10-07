@@ -1,0 +1,11 @@
+(define-class (worker)
+	(instance-vars (hunger 0))
+	(class-vars (all-workers '())
+				(work-done 0))
+	(initialize (set! all-workers (cons self all-workers)))
+	(method (work)
+	  (set! hunger (1+ hunger))
+	  (set! work-done (1+ work-done))
+	  'whistle-while-you-work))
+	  
+(define inst instantiate)
