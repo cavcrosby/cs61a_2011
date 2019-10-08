@@ -1,0 +1,16 @@
+(define-class (coke-machine can-fit-into-machine price)
+	(instance-vars (that-are-in-machine 0) (total-change 0))
+	(method (fill amount) 
+		(if (> (+ that-are-in-machine amount) can-fit-into-machine) 
+			(error "Cannot fit that many cokes into this machines") 
+			(begin 
+			(set! that-are-in-machine (+ that-are-in-machine amount)) 
+			that-are-in-machine)))
+	(method (deposit amount) (set! total-change (+ total-change amount)) total-change)
+	(method (coke)
+		(cond ((< total-change price) (error "Not enough money"))
+			  ((equal? that-are-in-machine 0) (error "Machine empty"))
+			  (else (begin 
+				(set! total-change (- total-change price))
+				(set! that-are-in-machine (- that-are-in-machine 1))
+				total-change)))))
