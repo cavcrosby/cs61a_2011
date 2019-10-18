@@ -211,15 +211,22 @@
 	(put '=zero? '(complex)
 		(lambda (z1) (=zero? z1)))
 	'done)
+	
+(define (make-from-real-imag r i)
+	((get 'make-from-real-imag 'complex) r i))
+	
+(define (make-from-mag-ang m a)
+	((get 'make-from-mag-ang 'complex) m a))
+	
 
 (install-scheme-number-package)
 (install-rational-package)
 (install-complex-package)
 (install-real-package)
 
-(define cnumber1 ((get 'make-from-real-imag 'complex) 5 10))
-(define cnumber2 ((get 'make-from-mag-ang 'complex) 2 180))
-(define cnumber3 ((get 'make-from-real-imag 'complex) 0 10))
+(define cnumber1 (make-from-real-imag 5 10))
+(define cnumber2 (make-from-mag-ang 2 180))
+(define cnumber3 (make-from-real-imag 0 10))
 (define sn1 (make-scheme-number 10))
 (define sn2 (make-scheme-number 0))
 (define rn1 (make-rational 0 4))
