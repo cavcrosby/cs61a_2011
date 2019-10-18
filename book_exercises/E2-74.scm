@@ -27,7 +27,7 @@
 	
 	; predicates
 	
-	(define (coercion? type container-type)
+	(define (subtype? type container-type)
 		(<= (index-of types container-type) (index-of types type)))
 	
 	(define (of-requested-type? type container-type)
@@ -40,19 +40,19 @@
 	
 	(define get-identifier cadr)
 	
-	(define type-tag car)
-	
-	(define sub-type-contents caddr)
+	(define container-contents caaddr)
 	
 	; TODO ADD TRANSFORM FUNC FOR OTHERS TO USE?
 			   
 			   
 	(define (get-generic type-desired container identifier) ; container should be of a specfic data object type, so all divisions, emp-records, or attributes
-		(cond  ((not (coercion? type-desired (type-tag container))) (error "Cannot perform coercion on container passed in -- " (type-tag container)))
-			   ((not (of-requested-type? type-desired (type-tag container))) (apply append (map (lambda (datum) (get-generic type-desired datum identifier)) (sub-type-contents container))))
+		(cond  ((not (subtype? type-desired (type-tag container))) (error "Container passed is a subtype, cannot get desired data -- " (type-tag container)))
+			   ((not (of-requested-type? type-desired (type-tag container))) 
+			     (apply append 
+						(map (lambda (content) (get-generic type-desired content identifier)) (container-contents container))
+						))
 			   (else (find identifier container))))
-			   
-	
+				
 	; utility
 	
 	(define (index-of lst x)
@@ -64,11 +64,9 @@
 	
 	(define (find identifier container-row)
 		(if (equal? identifier (get-identifier container-row))
-			(list container-row)
+			(wrap container-row)
 			'()))
 			  
-	(trace coercion?)
-	(trace index-of)
 	
 	;; interface to rest of the system
 	(define (tag type e) (attach-tag type e))
@@ -88,18 +86,26 @@
 		(lambda (identifier attr-value) (tag 'attr (make-attr identifier attr-value))))
 	(put 'get-data '(attr)
 		(lambda (identifier value) (get-generic 'attr identifier value)))
+	(put 'get-identifier '(organization)
+		get-identifier)
 'done)
 
 ; package install
 (install-division-package)
 
 ; interface procedures
-
-(define (make-organization-data type-desired data identifier)
-	(let ((func (get 'make (append (list type-desired) '()))))
-		(if func
-			(func identifier data)
-			(error "Unknown type-desired -- make-organization-data: " type-desired))))
+		
+(define (make-organization identifier . data)
+	((get 'make '(organization)) identifier data))
+	
+(define (make-division identifier . data)
+	((get 'make '(division)) identifier data ))
+	
+(define (make-emp-record identifier . data)
+	((get 'make '(emp-record)) identifier data))
+	
+(define (make-attr identifier data)
+	((get 'make '(attr)) identifier data))
 
 ;a
 (define (get-record type-desired data identifier)
@@ -109,31 +115,32 @@
 			(error "Unknown type of record to get -- get-record: " type-desired))))
 			
 ;b			
-(define (get-salary emp div)
-		(get-record 
-			'attr 
-			(car (get-record 'emp-record div emp))
-			'salary))
+(define (get-salaries emp div)
+		(apply append (map (lambda (emp-record) (get-record 'attr emp-record 'salary)) (get-record 'emp-record div emp))))
 ;c			
 (define (find-employee-record emp org)
 		(get-record 'emp-record org emp))
-	
 	
 ;d
 ;The only change to be made, will be that the new company will need to be added as a new division to Insatiable
 
 ;;;;;;;;
 
-(define attr1 ((get 'make '(attr)) 'Salary '50000))
-(define attr2 ((get 'make '(attr)) 'Address '(298 Smith Road)))
+(define attr1 (make-attr 'Salary '50000))
+(define attr2 (make-attr 'Address '(298 Smith Road)))
 
-(define emp-record ((get 'make '(emp-record)) 'Conner attr1 attr2))
+(define emp-record (make-emp-record 'Conner attr1 attr2))
 
-(define attr3 ((get 'make '(attr)) 'Salary '70000))
-(define attr4 ((get 'make '(attr)) 'Address '(123 Bob Road)))
+(define attr3 (make-attr 'Salary '70000))
+(define attr4 (make-attr 'Address '(123 Bob Road)))
 
-(define emp2-record ((get 'make '(emp-record)) 'William attr3 attr4))
+(define emp2-record (make-emp-record 'William attr3 attr4))
 
-(define division ((get 'make '(division)) 'Alpha emp-record emp2-record))
+(define attr5 (make-attr 'Salary '30000))
+(define attr6 (make-attr 'Address '(123 Smith Road)))
 
-(define org ((get 'make '(organization)) 'the-cool-guys division))
+(define emp3-record (make-emp-record 'Conner attr5 attr6))
+
+(define division (make-division 'Alpha emp-record emp2-record emp3-record))
+
+(define org (make-organization 'the-cool-guys division))
