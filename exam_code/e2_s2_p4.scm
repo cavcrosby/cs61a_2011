@@ -1,0 +1,17 @@
+(define make-tree cons)
+(define children cdr)
+(define datum car)
+(define t1 '(1 (2 (3) (4)) (5 (6) (7) (8))))
+	
+(define (maxpath tree)
+  (if (null? (children tree))
+      (datum tree)
+      (+ (datum tree)
+		(biggest (map maxpath (children tree))))))
+	
+(define (biggest l)
+	(define (bg l n)
+		(cond ((null? l) n)
+			  ((> (car l) n) (bg (bf l) (car l)))
+			  ((bg (bf l) n))))
+	(bg l 0))

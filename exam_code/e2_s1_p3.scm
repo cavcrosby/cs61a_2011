@@ -8,3 +8,8 @@
     (apply max (mfh tree))) ; max cannot be applied to just a list of numbers
 	
 (define t1 '(1 (2 (3) (4)) (5 (6) (7) (8))))
+
+(define (mxfo tree)
+	(accumulate max
+	      (length (children tree))
+	      (map max-fanout (children tree))))
