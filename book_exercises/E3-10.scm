@@ -1,0 +1,2 @@
+; There is no difference, as the let expression is just syntatical sugar and will be converted to a lambda expression
+; W2 will share the left bubbles of its procedures with W1's bubbles, the difference will be in their environments making them different procedures
