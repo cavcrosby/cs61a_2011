@@ -15,9 +15,13 @@
 (define Noahs (instantiate place 'Noahs))
 (define Intermezzo (instantiate place 'Intermezzo))
 (define s-h (instantiate place 'sproul-hall))
+(define Dormitory (instantiate place 'Dormitory))
+(define Kirin (instantiate place 'Kirin))
 
 
 (can-go Soda 'up art-gallery)
+(can-go Soda 'north Kirin)
+(can-go Kirin 'south Soda)
 (can-go art-gallery 'down Soda)
 (can-go art-gallery 'west BH-Office)
 (can-go BH-Office 'east art-gallery)
@@ -25,7 +29,8 @@
 (can-go MJC-office 'west art-gallery)
 (can-go Soda 'south Pimentel)
 (can-go Pimentel 'north Soda)
-(can-go Pimentel 'south 61A-Lab)
+;(can-go Pimentel 'south 61A-Lab)
+(can-go Pimentel 'south Sproul-Plaza)
 (can-go 61A-Lab 'north Pimentel)
 (can-go 61A-Lab 'west s-h)
 (can-go s-h 'east 61A-Lab)
@@ -38,6 +43,10 @@
 (can-go Noahs 'north Telegraph-Ave)
 (can-go Noahs 'south Intermezzo)
 (can-go Intermezzo 'north Noahs)
+(can-go Sproul-Plaza 'west Dormitory)
+(can-go Dormitory 'east Sproul-Plaza)
+
+
 
 ;; Some people.
 ; MOVED above the add-entry-procedure stuff, to avoid the "The computers
@@ -47,6 +56,24 @@
 (define Brian (instantiate person 'Brian BH-Office))
 (define hacker (instantiate person 'hacker 61A-lab))
 (define nasty (instantiate thief 'nasty sproul-plaza))
+(define Conner (instantiate person 'Conner Dormitory))
+
+(define potstickers (instantiate thing 'potstickers))
+(ask Kirin 'appear potstickers)
+
+(ask Conner 'go 'east)
+(ask Conner 'go 'north)
+(ask Conner 'go 'north)
+(ask Conner 'go 'north)
+(ask Conner 'take potstickers)
+(ask Conner 'go 'south)
+(ask Conner 'go 'up)
+(ask Conner 'go 'west)
+(ask Conner 'lose potstickers)
+(ask Brian 'take potstickers)
+
+
+
 
 (define (sproul-hall-exit)
    (error "You can check out any time you'd like, but you can never leave"))

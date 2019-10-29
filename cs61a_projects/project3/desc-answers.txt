@@ -1,0 +1,12 @@
+2A. a disptach procedure is what is returned
+
+2B. All instance vars (including the instantiation variables), and method names (with respective arguments)
+
+2C. 
+	-(ask Brian 'place) returns the disptach procedure for the place object, in this case, for recently created Peoples-Park
+	-returns the name of the place, in this case peoples-park
+	-appeared! (bagel is now in peoples-park)
+
+2D. 
+	-(ask 61a-lab 'appear computer) would be the correct expression, computer points to the Durer object
+	-(computer 'name) returns the procedure to call to get the instance variable of the object. Without using ask, we are just getting the procedure to retrieve the instance variable

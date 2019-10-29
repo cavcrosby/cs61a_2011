@@ -117,29 +117,38 @@
 	     (set! place new-place)
 	     (ask new-place 'enter self))))) )
 
-(define thing
-  (let ()
-    (lambda (class-message)
-      (cond
-       ((eq? class-message 'instantiate)
-	(lambda (name)
-	  (let ((self '()) (possessor 'no-one))
-	    (define (dispatch message)
-	      (cond
-	       ((eq? message 'initialize)
-		(lambda (value-for-self)
-		  (set! self value-for-self)))
-	       ((eq? message 'send-usual-to-parent)
-		(error "Can't use USUAL without a parent." 'thing))
-	       ((eq? message 'name) (lambda () name))
-	       ((eq? message 'possessor) (lambda () possessor))
-	       ((eq? message 'type) (lambda () 'thing))
-	       ((eq? message 'change-possessor)
-		(lambda (new-possessor)
-		  (set! possessor new-possessor)))
-	       (else (no-method 'thing))))
-	    dispatch)))
-       (else (error "Bad message to class" class-message))))))
+; (define thing
+  ; (let ()
+    ; (lambda (class-message)
+      ; (cond
+       ; ((eq? class-message 'instantiate)
+	; (lambda (name)
+	  ; (let ((self '()) (possessor 'no-one))
+	    ; (define (dispatch message)
+	      ; (cond
+	       ; ((eq? message 'initialize)
+		; (lambda (value-for-self)
+		  ; (set! self value-for-self)))
+	       ; ((eq? message 'send-usual-to-parent)
+		; (error "Can't use USUAL without a parent." 'thing))
+	       ; ((eq? message 'name) (lambda () name))
+	       ; ((eq? message 'possessor) (lambda () possessor))
+	       ; ((eq? message 'type) (lambda () 'thing))
+	       ; ((eq? message 'change-possessor)
+		; (lambda (new-possessor)
+		  ; (set! possessor new-possessor)))
+	       ; (else (no-method 'thing))))
+	    ; dispatch)))
+       ; (else (error "Bad message to class" class-message))))))
+	   
+	   
+(define-class (thing name)
+	(instance-vars (possessor 'no-one))
+	(method (type) 'thing)
+	(method (change-possessor new-possessor)
+		(set! possessor new-possessor)
+		'okay)
+	(default-method (error "Bad message to class: " message)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -173,6 +182,25 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (name obj) (ask obj 'name))
+(define (inventory obj)
+  (if (person? obj)
+      (map name (ask obj 'possessions))
+      (map name (ask obj 'things))))
+	  
+(define (whereis obj)
+	(if (person? obj)
+		(ask (ask obj 'place) 'name)
+		(error "Not a person -- " obj)))
+		
+(define (owner obj)
+	(if (thing? obj)
+		(let ((owner (ask obj 'possessor)))
+			(if (equal? owner 'no-one)
+				'no-one
+				(ask owner 'name)))
+		(error "Not a thing -- " ob)))
 
 ;;; this next procedure is useful for moving around
 
