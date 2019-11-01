@@ -25,6 +25,7 @@
   (method (enter new-person)
     (if (memq new-person people)
 	(error "Person already in this place" (list name new-person)))
+	(for-each (lambda (person) (ask person 'notice new-person)) people)
     (set! people (cons new-person people))
     (for-each (lambda (proc) (proc)) entry-procs)
     'appeared)
@@ -46,6 +47,8 @@
     (set! directions-and-neighbors
 	  (cons (cons direction neighbor) directions-and-neighbors))
     'connected)
+	
+  (method (may-enter? person) #t)
 
   (method (add-entry-procedure proc)
     (set! entry-procs (cons proc entry-procs)))
@@ -105,7 +108,9 @@
   (method (go direction)
     (let ((new-place (ask place 'look-in direction)))
       (cond ((null? new-place)
-	     (error "Can't go" direction))
+				(error "Can't go" direction))
+		 ((not (ask new-place 'may-enter? self))
+				(error "Place is locked -- " (ask new-place 'name)))
 	    (else
 	     (ask place 'exit self)
 	     (announce-move name place new-place)
@@ -150,7 +155,60 @@
 		'okay)
 	(default-method (error "Bad message to class: " message)))
 
-
+(define-class (locked-place name)
+	(parent (place name))
+	(instance-vars (locked #t))
+	(method (unlock) 
+		(set! locked #f)  
+		(display name)
+		(display " is now unlocked")
+		(newline))
+	(method (lock)
+		(set! locked #t)
+		(display name)
+		(display " is now locked")
+		(newline))
+	(method (may-enter? person)
+		(if locked
+			#f
+			#t)))
+			
+(define-class (garage name)
+	(parent (place name))
+	(class-vars (serial-counter 1))
+	(instance-vars (table (make-table)))
+	(method (park thing-car)
+		(let ((possessor (ask thing-car 'possessor)))
+			(cond ((null? (flatmap 
+					  (lambda (thing) (if (eq? thing thing-car) (list thing-car) '()))
+					  (usual 'things))) (error "Car is not in the garage " thing-car))
+				  ((eq? 'no-one possessor) (error "Whose driving this car?!?! " thing-car))
+				(else 
+					(begin
+						(let ((new-ticket (instantiate ticket 'ticket serial-counter)))
+							(insert! serial-counter thing-car table)
+							(ask possessor 'lose thing-car)
+							(ask self 'appear new-ticket)
+							(ask possessor 'take new-ticket)
+							(set! serial-counter (+ 1 serial-counter))
+							'okay))))))
+	(method (un-park ticket)
+		(if (not (ticket? ticket)) 
+			(error "Not a ticket " ticket)
+			(let ((ticket-number (ask ticket 'number)))
+				(let ((thing-car (lookup ticket-number table)) (possessor (ask ticket 'possessor)))
+					(if (not thing-car)
+						(error "Car is not parked here")
+						(begin
+							(ask possessor 'lose ticket)
+							(ask possessor 'take thing-car)
+							(insert! ticket-number #f table)
+							'okay)))))))
+	
+				
+(define-class (ticket name number)
+	(parent (thing name)))
+			
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Implementation of thieves for part two
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -201,6 +259,12 @@
 				'no-one
 				(ask owner 'name)))
 		(error "Not a thing -- " ob)))
+		
+(define (get-ticket person)
+	(let ((tickets (flatmap (lambda (possession) (if (ticket? possession) (list possession) '())) (ask person 'possessions))))
+		(if (not (null? tickets))
+			(car tickets)
+			'())))
 
 ;;; this next procedure is useful for moving around
 
@@ -261,3 +325,8 @@
 (define (thing? obj)
   (and (procedure? obj)
        (eq? (ask obj 'type) 'thing)))
+	   
+(define (ticket? obj)
+	(and (procedure? obj)
+		(eq? (ask obj 'type) 'thing)
+		(eq? (ask obj 'name) 'ticket)))

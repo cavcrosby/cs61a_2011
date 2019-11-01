@@ -17,6 +17,9 @@
 (define s-h (instantiate place 'sproul-hall))
 (define Dormitory (instantiate place 'Dormitory))
 (define Kirin (instantiate place 'Kirin))
+(define disneyland (instantiate locked-place 'disneyland))
+(define g1 (instantiate garage 'g1))
+(define g2 (instantiate garage 'g2))
 
 
 (can-go Soda 'up art-gallery)
@@ -45,6 +48,12 @@
 (can-go Intermezzo 'north Noahs)
 (can-go Sproul-Plaza 'west Dormitory)
 (can-go Dormitory 'east Sproul-Plaza)
+(can-go disneyland 'east BH-Office)
+(can-go BH-Office 'west disneyland)
+(can-go g1 'west g2)
+(can-go g2 'east g1)
+(can-go g1 'east Telegraph-Ave)
+(can-go Telegraph-Ave 'west g1)
 
 
 
@@ -56,27 +65,40 @@
 (define Brian (instantiate person 'Brian BH-Office))
 (define hacker (instantiate person 'hacker 61A-lab))
 (define nasty (instantiate thief 'nasty sproul-plaza))
+(define preacher (instantiate person 'preacher sproul-plaza))
 (define Conner (instantiate person 'Conner Dormitory))
 
+(ask brian 'set-talk 'Diddly-do)
+(ask hacker 'set-talk '....)
+(ask preacher 'set-talk "Praise the Lord!")
+
 (define potstickers (instantiate thing 'potstickers))
+(define a_car (instantiate thing 'a_car))
 (ask Kirin 'appear potstickers)
+(ask Kirin 'appear a_car)
 
 (ask Conner 'go 'east)
 (ask Conner 'go 'north)
 (ask Conner 'go 'north)
 (ask Conner 'go 'north)
 (ask Conner 'take potstickers)
+(ask Conner 'take a_car)
 (ask Conner 'go 'south)
 (ask Conner 'go 'up)
 (ask Conner 'go 'west)
 (ask Conner 'lose potstickers)
 (ask Brian 'take potstickers)
 
-
-
-
-(define (sproul-hall-exit)
-   (error "You can check out any time you'd like, but you can never leave"))
+; (define (sproul-hall-exit)
+   ; (error "You can check out any time you'd like, but you can never leave"))
+   
+(define sproul-hall-exit
+	(let ((times-called 0))
+		(lambda ()
+			(if (<= times-called 3)
+				(begin (set! times-called (+ 1 times-called)) 
+					   (error "You can check out any time you'd like, but you can never leave"))
+					'okay))))
 
 (define (bh-office-exit)
   (print "What's your favorite programming language?")
