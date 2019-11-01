@@ -259,6 +259,10 @@
 				'no-one
 				(ask owner 'name)))
 		(error "Not a thing -- " ob)))
+
+(define (people-here location)
+	(map name (ask location 'people)))
+
 		
 (define (get-ticket person)
 	(let ((tickets (flatmap (lambda (possession) (if (ticket? possession) (list possession) '())) (ask person 'possessions))))

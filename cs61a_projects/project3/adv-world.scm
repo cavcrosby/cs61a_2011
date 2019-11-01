@@ -74,8 +74,10 @@
 
 (define potstickers (instantiate thing 'potstickers))
 (define a_car (instantiate thing 'a_car))
+(define b_car (instantiate thing 'b_car))
 (ask Kirin 'appear potstickers)
 (ask Kirin 'appear a_car)
+(ask BH-Office 'appear b_car)
 
 (ask Conner 'go 'east)
 (ask Conner 'go 'north)
@@ -88,6 +90,7 @@
 (ask Conner 'go 'west)
 (ask Conner 'lose potstickers)
 (ask Brian 'take potstickers)
+(ask Brian 'take b_car)
 
 ; (define (sproul-hall-exit)
    ; (error "You can check out any time you'd like, but you can never leave"))
