@@ -1,16 +1,15 @@
-(define (count-pairs x)
-	(define tp '())
-	(define (cph x)
-		(cond ((not (pair? x)) 0)
-			  ((memq tp x) 0)
-			(else 
-				(begin
-					(set! tp (cons x tp))
-					(+ 
-					(cph (car x))
-					(cph (cdr x))
-					1)))))
-	(cph x))
+(define count-pairs
+	(let ((tp '()))
+		(lambda (x)
+			(cond ((not (pair? x)) 0)
+				  ((memq x tp) 0)
+				  (else 
+					(begin
+						(set! tp (cons x tp))
+						(+ 
+						(count-pairs (car x))
+						(count-pairs (cdr x))
+						1)))))))
 	
 	
 (define last_pair
@@ -19,4 +18,4 @@
 		(set-cdr! (cdr s-pair) (cons 3 s-pair))
 		s-pair))
 		
-; can correctly sum up single dimension structures, last_pair still goes into infinite loop
+; fixed, credit goes to fgalassi as this one was making my head spin
