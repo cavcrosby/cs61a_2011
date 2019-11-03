@@ -18,3 +18,5 @@
 		(set-cdr! s-pair (cons 2 nil))
 		(set-cdr! (cdr s-pair) (cons 3 s-pair))
 		s-pair))
+		
+; can correctly sum up single dimension structures, last_pair still goes into infinite loop
