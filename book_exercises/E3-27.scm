@@ -31,15 +31,33 @@
 			dispatch))
 			
 			
-(define (insert! table value . keys) ; user interfaces should have the duty of making sure numerous keys can come in
-	((table 'insert-proc!) value keys))
+(define (insert! key value table) ; user interfaces should have the duty of making sure numerous keys can come in
+	((table 'insert-proc!) value (list key)))
 
-(define (lookup table . keys)
-	((table 'lookup-proc) keys))
+(define (lookup key table)
+	((table 'lookup-proc) (list key)))
 	
-(define t1 (make-table))
-(insert! t1 5 'number1)
-(insert! t1 6 'number2)
-(insert! t1 7 'number3)
-(insert! t1 88 'double-d 'number5)
-(insert! t1 99 'double-d 'number6)
+(define (fib n)
+	(cond ((= n 0) 0)
+		  ((= n 1) 1)
+		  (else (+ (fib (- n 1)) (fib (- n 2))))))
+
+(define (memoize f)
+	(let ((table (make-table)))
+		(lambda (x)
+			(let ((previously-computed-result
+					(lookup x table)))
+				(or previously-computed-result
+					(let ((result (f x)))
+						(insert! x result table)
+						result))))))
+
+(define memo-fib
+	(memoize
+		(lambda (n)
+			(cond ((= n 0) 0)
+				  ((= n 1) 1)
+				  (else (+ (memo-fib (- n 1))
+						   (memo-fib (- n 2))))))))
+						   
+						   
