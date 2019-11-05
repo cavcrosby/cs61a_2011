@@ -63,4 +63,5 @@
 ; When using memo-fib, you are putting in the table every computation including n, (n - 1).... (n - n). This removes the redundant computation and calls to memo-fib.
 ; This is especially true for computations on the right branch of the first branch node (or root node).
 ; When using memo-fib, the number of times memo-fib is invoked is proportional to the n or Big Theta(n).
+; The computation memoized for fib would be just its argument n, thus loosing potential time gain.
 						   
