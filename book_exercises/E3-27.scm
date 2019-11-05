@@ -37,10 +37,10 @@
 (define (lookup key table)
 	((table 'lookup-proc) (list key)))
 	
-(define (fib n)
-	(cond ((= n 0) 0)
-		  ((= n 1) 1)
-		  (else (+ (fib (- n 1)) (fib (- n 2))))))
+; (define (fib n)
+	; (cond ((= n 0) 0)
+		  ; ((= n 1) 1)
+		  ; (else (+ (fib (- n 1)) (fib (- n 2))))))
 
 (define (memoize f)
 	(let ((table (make-table)))
@@ -60,4 +60,7 @@
 				  (else (+ (memo-fib (- n 1))
 						   (memo-fib (- n 2))))))))
 						   
+; When using memo-fib, you are putting in the table every computation including n, (n - 1).... (n - n). This removes the redundant computation and calls to memo-fib.
+; This is especially true for computations on the right branch of the first branch node (or root node).
+; When using memo-fib, the number of times memo-fib is invoked is proportional to the n or Big Theta(n).
 						   
