@@ -1,5 +1,5 @@
 (define (vector-filter pred vec)
-	(define total-length (+ (vector-length vec)))
+	(define total-length (vector-length vec))
 	(define (how-many keep-number n)
 		(cond ((equal? n total-length) keep-number)
 			  ((not (pred (vector-ref vec n))) (how-many keep-number (+ n 1)))
