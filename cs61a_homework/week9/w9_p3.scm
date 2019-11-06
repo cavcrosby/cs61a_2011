@@ -9,5 +9,12 @@
 						(vector-set! vec n2 (vector-ref vec n))
 						(vector-set! vec n temp))
 						(loop vec (+ n 1) (+ n2 1)))
-			(loop vec (+ n 1) (+ n2 1)))))	
-	(loop vec 0 1)
+			(loop vec (+ n 1) (+ n2 1)))))
+	(define (loop-man)
+		(if (equal? total-length 1)
+			vec
+			(begin
+				(loop vec 0 1)
+				(set! total-length (- total-length 1))
+				(loop-man))))
+	(loop-man)) ; runtime of the algorithm is big theta n^2
