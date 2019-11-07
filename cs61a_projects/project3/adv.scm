@@ -2,7 +2,14 @@
 ;; This file contains the definitions for the objects in the adventure
 ;; game and some utility procedures.
 
+(define-class (basic-object name)
+	(instance-vars (properties (make-table)))
+	(method (put key value)
+		(insert! key value properties))
+	(default-method (lookup message properties)))
+
 (define-class (place name)
+  (parent (basic-object name))
   (instance-vars
    (directions-and-neighbors '())
    (things '())
@@ -64,16 +71,22 @@
     'cleared) )
 
 (define-class (person name place)
+  (parent (basic-object name))
   (instance-vars
    (possessions '())
    (saying ""))
   (initialize
+   (ask self 'put 'strength 50)
    (ask place 'enter self))
   (method (type) 'person)
   (method (look-around)
     (map (lambda (obj) (ask obj 'name))
 	 (filter (lambda (thing) (not (eq? thing self)))
 		 (append (ask place 'things) (ask place 'people)))))
+  (method (take-all)
+	(let ((things-not-owned 
+			(flatmap (lambda (thing) (if (eq? (owner thing) 'no-one) (list thing) '())) (ask place 'things))))
+		(map (lambda (thing) (ask self 'take thing)) things-not-owned)) 'all-taken)
   (method (take thing)
     (cond ((not (thing? thing)) (error "Not a thing" thing))
 	  ((not (memq thing (ask place 'things)))
@@ -148,13 +161,62 @@
 	   
 	   
 (define-class (thing name)
+	(parent (basic-object name))
 	(instance-vars (possessor 'no-one))
 	(method (type) 'thing)
 	(method (change-possessor new-possessor)
 		(set! possessor new-possessor)
 		'okay)
 	(default-method (error "Bad message to class: " message)))
+	
+(define-class (laptop name)
+	(parent (thing name))
+	(method (type) 'laptop)
+	(method (connect password)
+		(let ((owner (ask self 'possessor)))
+			(if (eq? 'no-one owner) 
+				(error "No one is manning this laptop " (ask self 'name))
+				(let ((hotspot (ask (ask self 'possessor) 'place)))
+				  (if (not (hotspot? hotspot)) 
+					(error "This place has no wifi " (ask hotspot 'name))) 
+					(ask hotspot 'connect self password)))))
+	(method (surf url)
+		(let ((owner (ask self 'possessor)))
+			(if (eq? 'no-one owner) 
+				(error "No one is manning this laptop " (ask self 'name))
+				(let ((hotspot (ask (ask self 'possessor) 'place)))
+				  (cond ((not (hotspot? hotspot)) (error "This place has no wifi " (ask hotspot 'name))) 
+						((memq self (ask hotspot 'connected-laptops)) (system (string-append "lynx " url)))
+						(else (error "You are not connected to this hotspot " (ask hotspot 'name))))))))
+	(method (disconnect)
+		(let ((owner (ask self 'possessor)))
+			(if (eq? 'no-one owner) 
+				(error "No one is manning this laptop " (ask self 'name))
+				(let ((hotspot (ask (ask self 'possessor) 'place)))
+				  (if (not (hotspot? hotspot)) 
+					(error "This place has no wifi " (ask hotspot 'name))) 
+					(ask hotspot 'disconnect self))))))
 
+(define-class (hotspot name password)
+	(parent (place name))
+	(instance-vars (connected-laptops '()))  
+	(method (type) 'hotspot)
+	(method (connect laptop guessing-password)
+		(cond ((memq laptop connected-laptops) (error "Already connected " (ask laptop 'name)))
+			  ((eq? password guessing-password) (begin (set! connected-laptops (cons laptop connected-laptops)) "Now connected!"))
+			  (else 
+				(error "Incorrect password, try again " guessing-password))))
+	(method (disconnect laptop)
+		(begin (set! connected-laptops (delete laptop connected-laptops)) "Disconnected!"))
+	(method (surf laptop url)
+		(system (string-append "lynx " url)))
+	(method (exit person)
+		(let ((laptop (flatmap (lambda (possession) (if (laptop? possession) (list possession) '())) (ask person 'possessions))))
+			(if (and (not (equal? laptop '())) (memq (car laptop) connected-laptops))
+				(begin (set! connected-laptops (delete (car laptop) connected-laptops)) (usual 'exit person))
+				(usual 'exit person)))))
+		
+		
 (define-class (locked-place name)
 	(parent (place name))
 	(instance-vars (locked #t))
@@ -250,7 +312,7 @@
 (define (whereis obj)
 	(if (person? obj)
 		(ask (ask obj 'place) 'name)
-		(error "Not a person -- " obj)))
+		(error "Not a person object -- " obj)))
 		
 (define (owner obj)
 	(if (thing? obj)
@@ -263,7 +325,6 @@
 (define (people-here location)
 	(map name (ask location 'people)))
 
-		
 (define (get-ticket person)
 	(let ((tickets (flatmap (lambda (possession) (if (ticket? possession) (list possession) '())) (ask person 'possessions))))
 		(if (not (null? tickets))
@@ -327,10 +388,19 @@
        (member? (ask obj 'type) '(person police thief))))
 
 (define (thing? obj)
-  (and (procedure? obj)
-       (eq? (ask obj 'type) 'thing)))
+  (or (and (procedure? obj)
+       (eq? (ask obj 'type) 'thing))
+	   (laptop? obj)))
 	   
 (define (ticket? obj)
 	(and (procedure? obj)
 		(eq? (ask obj 'type) 'thing)
 		(eq? (ask obj 'name) 'ticket)))
+
+(define (hotspot? obj)
+	(and (procedure? obj)
+			(eq? (ask obj 'type) 'hotspot)))
+
+(define (laptop? obj)
+	(and (procedure? obj)
+			(eq? (ask obj 'type) 'laptop)))

@@ -20,6 +20,9 @@
 (define disneyland (instantiate locked-place 'disneyland))
 (define g1 (instantiate garage 'g1))
 (define g2 (instantiate garage 'g2))
+(define starbucks (instantiate hotspot 'starbucks 'password1))
+(define laptop1 (instantiate laptop 'connerslaptop))
+(define laptop2 (instantiate laptop 'brianslaptop))
 
 
 (can-go Soda 'up art-gallery)
@@ -54,6 +57,8 @@
 (can-go g2 'east g1)
 (can-go g1 'east Telegraph-Ave)
 (can-go Telegraph-Ave 'west g1)
+(can-go art-gallery 'north starbucks)
+(can-go starbucks 'south art-gallery)
 
 
 
@@ -78,6 +83,8 @@
 (ask Kirin 'appear potstickers)
 (ask Kirin 'appear a_car)
 (ask BH-Office 'appear b_car)
+(ask BH-Office 'appear laptop1)
+(ask BH-Office 'appear laptop2)
 
 (ask Conner 'go 'east)
 (ask Conner 'go 'north)
@@ -91,6 +98,8 @@
 (ask Conner 'lose potstickers)
 (ask Brian 'take potstickers)
 (ask Brian 'take b_car)
+(ask Brian 'take laptop2)
+(ask Conner 'take laptop1)
 
 ; (define (sproul-hall-exit)
    ; (error "You can check out any time you'd like, but you can never leave"))
