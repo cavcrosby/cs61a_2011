@@ -133,32 +133,7 @@
 		(ask new-place 'appear p))
 	      possessions)
 	     (set! place new-place)
-	     (ask new-place 'enter self))))) )
-
-; (define thing
-  ; (let ()
-    ; (lambda (class-message)
-      ; (cond
-       ; ((eq? class-message 'instantiate)
-	; (lambda (name)
-	  ; (let ((self '()) (possessor 'no-one))
-	    ; (define (dispatch message)
-	      ; (cond
-	       ; ((eq? message 'initialize)
-		; (lambda (value-for-self)
-		  ; (set! self value-for-self)))
-	       ; ((eq? message 'send-usual-to-parent)
-		; (error "Can't use USUAL without a parent." 'thing))
-	       ; ((eq? message 'name) (lambda () name))
-	       ; ((eq? message 'possessor) (lambda () possessor))
-	       ; ((eq? message 'type) (lambda () 'thing))
-	       ; ((eq? message 'change-possessor)
-		; (lambda (new-possessor)
-		  ; (set! possessor new-possessor)))
-	       ; (else (no-method 'thing))))
-	    ; dispatch)))
-       ; (else (error "Bad message to class" class-message))))))
-	   
+	     (ask new-place 'enter self))))) )   
 	   
 (define-class (thing name)
 	(parent (basic-object name))
