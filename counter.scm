@@ -1,0 +1,6 @@
+(define-class (counter)
+	(instance-vars (count 0))
+	(method (next)
+		(set! count (+ 1 count)) 
+		count)
+)
