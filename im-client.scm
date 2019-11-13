@@ -101,11 +101,11 @@
   ;Change to GUI in future.
   (format #t "~%Message from ~A:~%    ~A~%~%" from-whom msg))
 
-(define (im who message)
-  ;;;Send message to who.
-  (if (not
-       (send-request (make-request whoiam who 'send-msg message) port-to-server))
-      (close-connection)))
+(define (im whos message)
+  ;;;Send message to whos.
+  (if (not (send-request (make-request whoiam (car whos) 'send-msg message) port-to-server))
+      (close-connection)
+	  (im (cdr whos) message)))
 
 (define (update-client-list client-list)
   ;;;Deal with a new client list.
