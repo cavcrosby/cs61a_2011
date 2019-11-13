@@ -12,8 +12,8 @@
 (define logging #t) ; set to true to see logging
 
 (define socket-to-server #f)  	; Socket to server
-(define port-to-server #f)  	; write port to server
-(define port-from-server #f)  	; Read port from server
+(define port-to-server #f)  	; write port to server, socket-output->client
+(define port-from-server #f)  	; Read port from server socket-input->client
 (define clients #f)  		; List of known clients
 
 ; Your name (can be changed before im-enroll)
@@ -96,29 +96,19 @@
   ;; Now set up handler
   (when-port-readable port-from-server request-handler))
 
+;;Procedures for handling such messages
+
 (define (received-msg from-whom msg)
   ;;;Handles message received from other clients.
   ;Change to GUI in future.
   (format #t "~%Message from ~A:~%    ~A~%~%" from-whom msg))
-
-(define (im whos message)
-  ;;;Send message to whos.
-  (cond ((null? whos) 'okay)
-		((not (send-request (make-request whoiam (car whos) 'send-msg message) port-to-server)) 
-			(close-connection))
-	    (else 
-			(im (cdr whos) message))))
-			
-(define (broadcast message)
-	(if (not (send-request (make-request whoiam 'server 'broadcast message) port-to-server))
-		(close-connection)))
-
+  
 (define (update-client-list client-list)
-  ;;;Deal with a new client list.
-  (set! clients client-list)
-  ;Change to GUI in future.
-  (format #t "~%New client-list: ~A~%~%" client-list))
-
+	;;;Deal with a new client list.
+	(set! clients client-list)
+	;Change to GUI in future.
+	(format #t "~%New client-list: ~A~%~%" client-list))
+	
 (define (close-connection)
   ;;;Closes connection to the server.
   (format logging "Closing down socket and ports...")
@@ -132,6 +122,20 @@
   (set! clients #f)
   ;Change to GUI in future.
   (format #t "Connection to server closed.~%~%"))
+  
+ ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (im whos message)
+  ;;;Send message to whos.
+  (cond ((null? whos) 'okay)
+		((not (send-request (make-request whoiam (car whos) 'send-msg message) port-to-server)) 
+			(close-connection))
+	    (else 
+			(im (cdr whos) message))))
+			
+(define (broadcast message)
+	(if (not (send-request (make-request whoiam 'server 'broadcast message) port-to-server))
+		(close-connection)))
 
 (define (im-exit)
   ;;;Log out client.

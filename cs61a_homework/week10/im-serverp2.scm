@@ -31,7 +31,6 @@
 ;server variable stores the server socket
 (define server-socket #f)
 
-
 (define (add-client-to-table name sock)
   ;;;Add sock to the clients list bound to name
   ;
@@ -42,9 +41,8 @@
       (begin (set-cdr! clients-table (cons (cons name sock) (cdr clients-table))) #t)
       #f))
 
-
 (define (remove-client-from-table name)
-  ;;;Remove name from the clients list
+  ;;;Remove name from the clients list and closes client socket
   ;
   ;Broadcasting the new client list is left up to other places in the code.
   ;This is because if the server is shutting down the traffic created by 
@@ -58,11 +56,11 @@
 	     (set-cdr! table (cddr table))
 	     result))
 	  (else (helper who (cdr table)))))
-  (let ((to-close-socket (helper name clients-table)))
+  (let ((to-close-socket (helper name clients-table))) ; helper is lookup
     (if (not (socket-down? to-close-socket))
 	(begin 
 	  (if (socket-input to-close-socket)
-	      (when-port-readable (socket-input to-close-socket) #f))
+	      (when-port-readable (socket-input to-close-socket) #f)) ; socket may not exist or only delete socket when readable?
 	  (socket-shutdown to-close-socket #f))))  )
 
 
@@ -70,8 +68,8 @@
   ;;;Return the socket bound to name; if the name does not exist, return #f
   (let ((result (assoc name (cdr clients-table))))
     (if result
-	(value result)
-	#f)))
+		(value result)
+		#f)))
 
 
 (define (get-clients-list)
@@ -136,78 +134,77 @@
   (socket-accept-connection sock)
   (format logging "Connection accepted for ~A...~%" sock)
   (let* ((port-from-client (socket-input sock))
-	 (port-to-client (socket-output sock))
-	 (req (get-request port-from-client)))
+		(port-to-client (socket-output sock))
+		(req (get-request port-from-client)))
     (if (not req)
-	(socket-shutdown sock #f)
-	(begin
-	  (format logging "Request received: ~S~%" req)
-	 
-	  ;; Check message is "hello".
-	 
-	  (cond ((not (equal? 'hello (request-action req)))
-		 (format #t "Bad request from client: ~S"
-			 req)
-		 (socket-shutdown sock #f))	       
-		((member (request-src req) (get-clients-list))
-		 ;; name already exists, send "sorry" to client
-		 (format logging "Sending 'sorry' to client~%")
-		 (send-request (make-request 'server
-					     (request-src req)
-					     'sorry
-					     nil)
-			       port-to-client)
-		 (format #t "Name ~A already exists."
-			 (request-src req))
-		 (socket-shutdown sock #f))	       
-		(else
-		 ;;Send "welcome" message back.
-		 (format logging "Sending welcome message.~%")
-		 (if (not
-		      (send-request (make-request 'server
-						  (request-src req)
-						  'welcome
-						  nil)
-				    port-to-client))
-		     (socket-shutdown sock #f)		     
-		     (begin
-		      		 
-		       ;; Check response is "thanks"
-		       (set! req (get-request port-from-client))
-		       (if (not req)
-			   (socket-shutdown sock #f)
-			   (begin			     	   
-			     (format logging "Response received: ~S~%" req)
-			     (if (not (equal? 'thanks (request-action req)))
-				 (begin (format #t "Bad response from client: ~S" req)
-					(socket-shutdown sock #f))
+		(socket-shutdown sock #f)
+		(begin
+		  (format logging "Request received: ~S~%" req)
+		 
+		  ;; Check message is "hello".
+		 
+		  (cond ((not (equal? 'hello (request-action req)))
+				  (format #t "Bad request from client: ~S"
+					 req)
+				  (socket-shutdown sock #f))	       
+				((member (request-src req) (get-clients-list))
+			 ;; name already exists, send "sorry" to client
+				 (format logging "Sending 'sorry' to client~%")
+				 (send-request (make-request 'server
+								 (request-src req)
+								 'sorry
+								 nil)
+						   port-to-client)
+				 (format #t "Name ~A already exists."
+					 (request-src req))
+				 (socket-shutdown sock #f))	       
+			(else
+			 ;;Send "welcome" message back.
+			 (format logging "Sending welcome message.~%")
+			 (if (not
+				  (send-request (make-request 'server
+							  (request-src req)
+							  'welcome
+							  nil)
+						port-to-client)) ;request fails, either due to non-existent port or closed port
+				 (socket-shutdown sock #f)		     
 				 (begin
-				   ;; Finally, we can register the client
-				   (format logging "~A has logged on.~%"
-					   (request-src req))
-				   (register-client (request-src req)
-						    sock)
-				   (format logging "Finished handshake~%") )) ) ))))) ))) 
+				   ;; Check response is "thanks"
+				   (set! req (get-request port-from-client))
+				   (if (not req)
+					   (socket-shutdown sock #f)
+					   (begin			     	   
+						 (format logging "Response received: ~S~%" req)
+						 (if (not (equal? 'thanks (request-action req)))
+						 (begin (format #t "Bad response from client: ~S" req)
+							(socket-shutdown sock #f))
+						 (begin
+						   ;; Finally, we can register the client
+						   (format logging "~A has logged on.~%"
+							   (request-src req))
+						   (register-client (request-src req)
+									sock)
+						   (format logging "Finished handshake~%") )) ) ))))) ))) 
   'okay)
 
 
 ;; Assumes name is not already in client list
 (define (register-client name sock)
-  ;;;Store socket to client and start handling of the client socket.
+  ;;;Store client to socket and start handling of the client socket.
   (format logging "~A (~A) is being registered...~%" name sock)
   (if (add-client-to-table name sock)
-      (begin
-	(format logging "clients: ~A.~%" clients-table)
-	(setup-client-request-handler name sock)
-	(server-broadcast 'client-list (get-clients-list) 'server)
-	(format logging "~A is now registered.~%~%" name))
+		(begin
+			(format logging "clients: ~A.~%" clients-table)
+			(setup-client-request-handler name sock)
+			(server-broadcast 'client-list (get-clients-list) 'server)
+			(format logging "~A is now registered.~%~%" name))
       (error "register-client: client already in table!!")))
 
 
 (define (setup-client-request-handler name client-sock)
   ;;;Handle messages from the client.
   ;
-  ;Only handles "send-msg" and "logout" messages.
+  ;Only handles "send-msg", "logout", and "broadcast" messages.
   ;
   
   (define (client-request-handler)
@@ -300,7 +297,7 @@
 
 
 ;; portable and slightly slow, relies on www-inst.cs.berkeley.edu being up
-;;   which is quite reasonable for labs.
+;; which is quite reasonable for labs.
 (define (get-ip-address-as-string)
   (let* ((s (make-client-socket "www-inst.cs.berkeley.edu" 80))
          (a (socket-local-address s)))
