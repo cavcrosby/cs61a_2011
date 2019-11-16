@@ -108,8 +108,8 @@
   ;Close server socket.
   ;
   (format #t "Server shutting down...~%")
-  (server-broadcast 'receive-msg "Server shutting down..." 'server)
-  (server-broadcast 'goodbye nil 'server)
+  (server-broadcast 'receive-msg "Server shutting down...")
+  (server-broadcast 'goodbye nil)
   (for-each remove-client-from-table (get-clients-list))
   (if (and server-socket (not (socket-down? server-socket)))
       (begin
@@ -199,7 +199,7 @@
       (begin
 	(format logging "clients: ~A.~%" clients-table)
 	(setup-client-request-handler name sock)
-	(server-broadcast 'client-list (get-clients-list) 'server)
+	(server-broadcast 'client-list (get-clients-list))
 	(format logging "~A is now registered.~%~%" name))
       (error "register-client: client already in table!!")))
 
@@ -244,8 +244,7 @@
 							       (request-dst req)))
 					 port-to-client))
 			  (remove-client name)) ))) )
-	     ((equal? 'broadcast (request-action req))
-		   (server-broadcast 'receive-msg (request-data req) (request-src req)))
+	     
 	     ((equal? 'logout (request-action req))
 	      (remove-client name))
 	     
@@ -284,16 +283,16 @@
 			      nil)
 		(find-port-to-client who))
   (remove-client-from-table who)
-  (server-broadcast 'client-list (get-clients-list) 'server)
+  (server-broadcast 'client-list (get-clients-list))
   (format logging "~A removed as a client.~%~%" who))
 
 
-(define (server-broadcast cmd data who)
+(define (server-broadcast cmd data)
   ;;;Send COMMAND to all clients containing DATA.
   (format logging "Broadcasting the command ~A with data ~S to all clients.~%"
 		   cmd data)
   (for-each (lambda (name)
-	      (send-request (make-request who name cmd data)
+	      (send-request (make-request 'server name cmd data)
 			    (find-port-to-client name)))
 	    (get-clients-list))
   (format logging "Broadcast done.~%~%"))

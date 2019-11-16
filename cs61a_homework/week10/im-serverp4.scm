@@ -21,14 +21,14 @@
 (define logging #t)
 
 ;clients variable stores all known clients.
-;It's a table of entries in the format ("client name" ('*socket* client-socket) ('*those-blocked* ('client1 'client2 ...)))
+;It's a table of entries in the format ("client name" ('*socket* client-socket) ('*those-blocked* 'client1 'client2 ...)))
 (define clients-table (list '*table*))
 
 ;Data abstraction for above:
 (define key car)
 (define value cdr)
 (define socket (lambda (pair) (cadar (value pair))))
-(define blocked-clients (lambda (pair) (cddr (value pair))))
+(define blocked-clients (lambda (pair) (cadr (value pair))))
 
 ;server variable stores the server socket
 (define server-socket #f)
@@ -40,7 +40,7 @@
   ;This is done so as to function as the opposite to (remove-client-from-table).
   ;
   (if (not (assoc name (cdr clients-table)))
-      (begin (set-cdr! clients-table (cons (cons name (list (list '*socket* socket) (list '*those-blocked* '()))) (cdr clients-table))) #t)
+      (begin (set-cdr! clients-table (cons (cons name (list (list '*socket* socket) (list '*those-blocked*))) (cdr clients-table))) #t)
       #f))
 
 (define (remove-client-from-table name)
@@ -70,24 +70,33 @@
 		
 (define (block-client name to-block)
 	; A client can block any other client, even those not on the server currently
-	(let ((those-blocked (blocked-clients (find-client name))))
-		(if those-blocked
-			(if (not (member to-block those-blocked))
-				(begin 
-					(set! those-blocked (cons to-block those-blocked))
-					(display (format logging "~A is now blocked\n" to-block)))
-				(display (format logging "~A is already blocked\n" to-block)))
-			(display (format logged "~A is not a client\n" name)))) 'okay)
+	(let ((results (find-client name)))
+		(if results
+			(let ((those-blocked (blocked-clients results)))
+				(if (not (member to-block those-blocked))
+					(begin 
+						(set-cdr! those-blocked (cons to-block (cdr those-blocked)))
+						(format logging "~A is now blocked~%~%" to-block)
+						those-blocked)
+					(begin
+						(format logging "~A is already blocked~%~%" to-block)
+						those-blocked)))
+			(format logging "~A is not a client\n" name))))
+			
 		
 (define (unblock-client name to-unblock)
-  (let ((those-blocked (blocked-clients (find-client name))))
-    (if those-blocked
-		(if (member to-unblock those-blocked)
-			(begin 
-				(set! those-blocked (delete to-unblock those-blocked))
-				(display (format logging "~A is no longer blocked\n" to-unblock)))
-			(display (format logging "~A is not blocked\n" to-unblock)))
-		(display (format logged "~A is not a client\n" name)))))
+	(let ((results (find-client name)))
+		(if results
+			(let ((those-blocked (blocked-clients results)))
+				(if (member to-unblock those-blocked)
+					(begin 
+						(set-cdr! those-blocked (delete to-unblock (cdr those-blocked)))
+						(format logging "~A is now unblocked~%~%" to-unblock)
+						those-blocked)
+					(begin
+						(format logging "~A is not blocked~%~%" to-unblock)
+						those-blocked)))
+			(format logging "~A is not a client~%~%" name))))	
 
 (define (find-client name)
   ;;;Return the socket bound to name; if the name does not exist, return #f
@@ -104,6 +113,17 @@
 (define (get-clients-list)
   ;;;Return a list of known client names
   (map key (cdr clients-table)))
+ 
+(define (has-blocked? client1 client2)
+	; we are just seeing if either client1 has blocked client2 or if client2 has blocked client1
+	(let ((results-client1 (find-client client1))
+		  (results-client2 (find-client client2)))
+		(if (and results-client1 results-client2)
+			(if (or (member client2 (blocked-clients results-client1))
+				    (member client1 (blocked-clients results-client2)))
+				#t
+				#f)
+			#f)))
 
 (define (im-server-start)
   ;;;Start the server.
@@ -134,8 +154,8 @@
   ;Close server socket.
   ;
   (format #t "Server shutting down...~%")
-  (server-broadcast 'receive-msg "Server shutting down..." 'server)
-  (server-broadcast 'goodbye nil 'server)
+  (server-broadcast 'receive-msg "Server shutting down...")
+  (server-broadcast 'goodbye nil)
   (for-each remove-client-from-table (get-clients-list))
   (if (and server-socket (not (socket-down? server-socket)))
       (begin
@@ -224,7 +244,7 @@
 		(begin
 			(format logging "clients: ~A.~%" (get-clients-list))
 			(setup-client-request-handler name sock)
-			(server-broadcast 'client-list (get-clients-list) 'server)
+			(server-broadcast 'client-list (get-clients-list))
 			(format logging "~A is now registered.~%~%" name))
       (error "register-client: client already in table!!")))
 
@@ -245,32 +265,36 @@
 	    (format logging "Received request: ~S~%" req)
 	    (cond
 	     ((equal? 'send-msg (request-action req))
-	      (let ((port-to-dst (find-port-to-client (request-dst req))))
-		(if port-to-dst		   
-		    (begin  
-		      (format logging "Delivering message from ~A to ~A.~%"
-			      (request-src req)
-			      (request-dst req))
-		      (if (not
-			   (send-request (make-request (request-src req) 
-						       (request-dst req)
-						       'receive-msg
-						       (request-data req))
-					 port-to-dst))
-			  (remove-client (request-dst req))))
-		    (begin
-		      (format logging "User not found: ~A. Letting sender know.~%"
-			      (request-dst req))
-		      (if (not
-			   (send-request (make-request 'server
-						       name
-						       'receive-msg
-						       (format #f "User not found: ~A"
-							       (request-dst req)))
-					 port-to-client))
-			  (remove-client name)) ))) )
+		   (if (not (has-blocked? (request-src req) (request-dst req)))
+			  (let ((port-to-dst (find-port-to-client (request-dst req))))
+				(if port-to-dst		   
+					(begin  
+					  (format logging "Delivering message from ~A to ~A.~%"
+						  (request-src req)
+						  (request-dst req))
+					  (if (not
+					   (send-request (make-request (request-src req) 
+									   (request-dst req)
+									   'receive-msg
+									   (request-data req))
+							 port-to-dst))
+					  (remove-client (request-dst req))))
+					(begin
+					  (format logging "User not found: ~A. Letting sender know.~%"
+						  (request-dst req))
+					  (if (not
+					   (send-request (make-request 'server
+									   name
+									   'receive-msg
+									   (format #f "User not found: ~A"
+										   (request-dst req)))
+							 port-to-client))
+					  (remove-client name)) ))) ))
 	     ((equal? 'broadcast (request-action req))
-		   (server-broadcast 'receive-msg (request-data req) (request-src req)))
+			  (for-each 
+					(lambda (name)
+						(if (not (has-blocked (request-src) name)) (send-request (make-request who name cmd data) (find-port-to-client name))))
+					(get-clients-list)))
 	     ((equal? 'logout (request-action req))
 	      (remove-client name))
 	     
@@ -304,16 +328,16 @@
 			      nil)
 		(find-port-to-client who))
   (remove-client-from-table who)
-  (server-broadcast 'client-list (get-clients-list) 'server)
+  (server-broadcast 'client-list (get-clients-list))
   (format logging "~A removed as a client.~%~%" who))
 
 
-(define (server-broadcast cmd data who)
+(define (server-broadcast cmd data)
   ;;;Send COMMAND to all clients containing DATA.
   (format logging "Broadcasting the command ~A with data ~S to all clients.~%"
 		   cmd data)
   (for-each (lambda (name)
-	      (send-request (make-request who name cmd data)
+	      (send-request (make-request 'server name cmd data)
 			    (find-port-to-client name)))
 	    (get-clients-list))
   (format logging "Broadcast done.~%~%"))

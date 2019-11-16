@@ -103,13 +103,9 @@
 
 (define (im who message)
   ;;;Send message to who.
-  (if (not 
-		(send-request (make-request whoiam (car whos) 'send-msg message) port-to-server))
-		(close-connection)))
-			
-(define (broadcast message)
-	(if (not (send-request (make-request whoiam 'server 'broadcast message) port-to-server))
-		(close-connection)))
+  (if (not
+       (send-request (make-request whoiam who 'send-msg message) port-to-server))
+      (close-connection)))
 
 (define (update-client-list client-list)
   ;;;Deal with a new client list.
