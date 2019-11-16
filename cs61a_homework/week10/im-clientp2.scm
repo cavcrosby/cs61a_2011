@@ -111,7 +111,7 @@
 	
 (define (close-connection)
   ;;;Closes connection to the server.
-  (format logging "Closing down socket and ports...")
+  (format logging "Closing down socket and ports...~%")
   (if (and port-from-server (not (port-closed? port-from-server)))
       (when-port-readable port-from-server #f))
   (set! port-from-server #f)

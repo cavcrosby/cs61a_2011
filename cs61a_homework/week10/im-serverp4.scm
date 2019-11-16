@@ -21,13 +21,13 @@
 (define logging #t)
 
 ;clients variable stores all known clients.
-;It's a table of entries in the format ("client name" . (('*socket* client-socket) ('*those-blocked* ('client1 'client2 ...))))
+;It's a table of entries in the format ("client name" ('*socket* client-socket) ('*those-blocked* ('client1 'client2 ...)))
 (define clients-table (list '*table*))
 
 ;Data abstraction for above:
 (define key car)
 (define value cdr)
-(define socket (lambda (pair) (cdar (value pair))))
+(define socket (lambda (pair) (cadar (value pair))))
 (define blocked-clients (lambda (pair) (cddr (value pair))))
 
 ;server variable stores the server socket
@@ -39,9 +39,9 @@
   ;Broadcasting the new client list is left up to other places in the code.
   ;This is done so as to function as the opposite to (remove-client-from-table).
   ;
-  (if (not (assoc name (cdr table)))
-      (begin (set-cdr! clients-table (cons (cons name (list (list '*socket* socket) (list '*those-blocked* (cdr clients-table)))) #t)
-      #f))))
+  (if (not (assoc name (cdr clients-table)))
+      (begin (set-cdr! clients-table (cons (cons name (list (list '*socket* socket) (list '*those-blocked* '()))) (cdr clients-table))) #t)
+      #f))
 
 (define (remove-client-from-table name)
   ;;;Remove name from the clients list and closes client socket
@@ -54,7 +54,7 @@
     ;Remove key-value pair from table, return its value (socket).
     (cond ((null? (cdr table)) #f)
 	  ((equal? who (key (cadr table)))
-	   (let ((result (value (cadr table))))
+	   (let ((result (cadr table)))
 	     (set-cdr! table (cddr table))
 	     result))
 	  (else (helper who (cdr table)))))
@@ -68,6 +68,17 @@
 		(socket-shutdown to-close-socket #f))))
 		
 		
+(define (block-client name to-block)
+	; A client can block any other client, even those not on the server currently
+	(let ((those-blocked (blocked-clients (find-client name))))
+		(if those-blocked
+			(if (not (member to-block those-blocked))
+				(begin 
+					(set! those-blocked (cons to-block those-blocked))
+					(display (format logging "~A is now blocked\n" to-block)))
+				(display (format logging "~A is already blocked\n" to-block)))
+			(display (format logged "~A is not a client\n" name)))) 'okay)
+		
 (define (unblock-client name to-unblock)
   (let ((those-blocked (blocked-clients (find-client name))))
     (if those-blocked
@@ -80,7 +91,7 @@
 
 (define (find-client name)
   ;;;Return the socket bound to name; if the name does not exist, return #f
-  (let ((result (assoc name (cdr client-list))))
+  (let ((result (assoc name (cdr clients-table))))
     (if result
 		result
 		#f)))
@@ -211,7 +222,7 @@
   (format logging "~A (~A) is being registered...~%" name sock)
   (if (add-client-to-table name sock)
 		(begin
-			(format logging "clients: ~A.~%" clients-table)
+			(format logging "clients: ~A.~%" (get-clients-list))
 			(setup-client-request-handler name sock)
 			(server-broadcast 'client-list (get-clients-list) 'server)
 			(format logging "~A is now registered.~%~%" name))
