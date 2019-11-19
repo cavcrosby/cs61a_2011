@@ -83,6 +83,16 @@
     (map (lambda (obj) (ask obj 'name))
 	 (filter (lambda (thing) (not (eq? thing self)))
 		 (append (ask place 'things) (ask place 'people)))))
+  (method (go-directly-to new-place)
+	     (ask place 'exit self)
+	     (announce-move name place new-place)
+	     (for-each
+	      (lambda (p)
+		(ask place 'gone p)
+		(ask new-place 'appear p))
+	      possessions)
+	     (set! place new-place)
+	     (ask new-place 'enter self))
   (method (take-all)
 	(let ((things-not-owned 
 			(flatmap (lambda (thing) (if (eq? (owner thing) 'no-one) (list thing) '())) (ask place 'things))))
@@ -98,16 +108,10 @@
 	   (set! possessions (cons thing possessions))
 	       
 	   ;; If somebody already has this object...
-	   (for-each
-	    (lambda (pers)
-	      (if (and (not (eq? pers self)) ; ignore myself
-		       (memq thing (ask pers 'possessions)))
-		  (begin
-		   (ask pers 'lose thing)
-		   (have-fit pers))))
-	    (ask place 'people))
-	       
-	   (ask thing 'change-possessor self)
+		(let ((possessor (ask thing 'possessor)))
+			(if (not (equal? 'no-one possessor))
+				(begin (ask possessor 'lose thing) (ask thing 'change-possessor self) (have-fit possessor))
+				(ask thing 'change-possessor self)))
 	   'taken)))
 
   (method (lose thing)
@@ -241,6 +245,13 @@
 							(ask possessor 'take thing-car)
 							(insert! ticket-number #f table)
 							'okay)))))))
+							
+(define-class (jail name)
+	(parent (place name))
+	(instance-vars (directions-and-neighbors '()))
+	(method (new-neighbor direction neighbor)
+		'())
+	(method (type) 'jail))
 	
 				
 (define-class (ticket name number)
@@ -259,6 +270,16 @@
   (instance-vars
    (behavior 'steal))
   (method (type) 'thief)
+  (method (go-directly-to new-place)
+	     (ask place 'exit self)
+	     (announce-move name place new-place)
+	     (for-each
+	      (lambda (p)
+		(ask place 'gone p)
+		(ask new-place 'appear p))
+	      possessions)
+	     (set! place new-place)
+	     (ask new-place 'enter self))
 
   (method (notice person)
     (if (eq? behavior 'run)
@@ -273,7 +294,20 @@
 			   (ask self 'take (car food-things))
 			   (set! behavior 'run)
 			   (ask self 'notice person)) )))) )
-
+			   
+			   
+(define-class (police name initial-place station)
+	(parent (person name initial-place))
+	(initialize (if (not (and (procedure? station) (equal? (ask station 'type) 'jail))) (error "Police must be created initially in a station/jail -" station)))
+	(method (type) 'police)
+	(method (notice person)
+		(if (eq? (ask person 'type) 'thief)
+			(begin
+				(display "Stop! Thief!\n")
+				(format #t "~A was apprehended" (ask person 'name))
+				(for-each (lambda (item) (ask person 'lose item)) (ask person 'possessions))
+				(ask person 'go-directly-to station)))))
+	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility procedures
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -361,6 +395,10 @@
 (define (person? obj)
   (and (procedure? obj)
        (member? (ask obj 'type) '(person police thief))))
+	   
+(define (jail? obj)
+  (and (procedure? obj)
+		(equal? 'jail (ask obj 'type))))
 
 (define (thing? obj)
   (or (and (procedure? obj)

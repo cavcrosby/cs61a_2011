@@ -23,6 +23,7 @@
 (define starbucks (instantiate hotspot 'starbucks 'password1))
 (define laptop1 (instantiate laptop 'connerslaptop))
 (define laptop2 (instantiate laptop 'brianslaptop))
+(define berk_pold (instantiate jail 'berkpol))
 
 
 (can-go Soda 'up art-gallery)
@@ -62,6 +63,7 @@
 
 
 
+
 ;; Some people.
 ; MOVED above the add-entry-procedure stuff, to avoid the "The computers
 ; seem to be down" message that would occur when hacker enters 61a-lab
@@ -72,6 +74,8 @@
 (define nasty (instantiate thief 'nasty sproul-plaza))
 (define preacher (instantiate person 'preacher sproul-plaza))
 (define Conner (instantiate person 'Conner Dormitory))
+(define po1 (instantiate police 'police1 starbucks berkeley_police))
+(define po2 (instantiate police 'police2 Kirin berkeley_police))
 
 (ask brian 'set-talk 'Diddly-do)
 (ask hacker 'set-talk '....)
