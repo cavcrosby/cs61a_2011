@@ -249,7 +249,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Implementation of thieves for part two
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define *foods* '(pizza potstickers coffee))
+(define *foods* '(pizza potstickers coffee coke))
 
 (define (edible? thing)
   (member? (ask thing 'name) *foods*))
@@ -262,17 +262,17 @@
 
   (method (notice person)
     (if (eq? behavior 'run)
-	(ask self 'go (pick-random (ask (usual 'place) 'exits)))
-	(let ((food-things
-	       (filter (lambda (thing)
-			 (and (edible? thing)
-			      (not (eq? (ask thing 'possessor) self))))
-		       (ask (usual 'place) 'things))))
-	  (if (not (null? food-things))
-	      (begin
-	       (ask self 'take (car food-things))
-	       (set! behavior 'run)
-	       (ask self 'notice person)) )))) )
+		(ask self 'go (pick-random (ask (usual 'place) 'exits)))
+		(let ((food-things
+			   (filter (lambda (thing)
+				 (and (edible? thing)
+					  (not (eq? (ask thing 'possessor) self))))
+				   (ask (usual 'place) 'things))))
+		  (if (not (null? food-things))
+			  (begin
+			   (ask self 'take (car food-things))
+			   (set! behavior 'run)
+			   (ask self 'notice person)) )))) )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility procedures

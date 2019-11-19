@@ -18,11 +18,15 @@
 ;;;  Hopefully you'll see more of the world than this in real life
 ;;;  while you're doing the project!
 
+(define Conner (instantiate person 'Conner Lounge))
+(define thebadone (instantiate thief 'thebadone 61A-Lab))
+
 (define homework-box (instantiate thing 'homework-box))
 (ask 61A-Lab 'appear homework-box)
 
 (define Coke (instantiate thing 'Coke))
 (ask Lounge 'appear Coke)
+(ask Conner 'take Coke)
 
 (define laba (instantiate person 'Lab-assistant 61A-Lab))
 
