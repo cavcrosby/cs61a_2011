@@ -74,8 +74,8 @@
 (define nasty (instantiate thief 'nasty sproul-plaza))
 (define preacher (instantiate person 'preacher sproul-plaza))
 (define Conner (instantiate person 'Conner Dormitory))
-(define po1 (instantiate police 'police1 starbucks berkeley_police))
-(define po2 (instantiate police 'police2 Kirin berkeley_police))
+(define po1 (instantiate police 'police1 starbucks berk_pold))
+(define po2 (instantiate police 'police2 Kirin berk_pold))
 
 (ask brian 'set-talk 'Diddly-do)
 (ask hacker 'set-talk '....)
