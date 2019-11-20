@@ -74,21 +74,32 @@
   (parent (basic-object name))
   (instance-vars
    (possessions '())
-   (saying ""))
+   (saying "")
+   (money 100))
   (initialize
    (ask self 'put 'strength 50)
    (ask place 'enter self))
   (method (type) 'person)
+  (method (get-money amount)
+	(begin (set! money (+ money amount)) money))
+  (method (pay-money amount)
+	(if (> 0 (- money amount))
+		#f
+		(begin (set! money (- money amount)) #t)))
+  (method (buy food-person-wants)
+	(let ((food (ask place 'sell self food-person-wants)))
+		(if food
+			(set! possessions (cons food possessions)))))
   (method (look-around)
     (map (lambda (obj) (ask obj 'name))
 	 (filter (lambda (thing) (not (eq? thing self)))
 		 (append (ask place 'things) (ask place 'people)))))
   (method (go-directly-to new-place)
-	     (ask place 'exit self)
-	     (announce-move name place new-place)
+	     (ask (ask self 'place) 'exit self)
+	     (announce-move name (ask self 'place) new-place)
 	     (for-each
 	      (lambda (p)
-		(ask place 'gone p)
+		(ask (ask self 'place) 'gone p)
 		(ask new-place 'appear p))
 	      possessions)
 	     (set! place new-place)
@@ -253,6 +264,25 @@
 		'())
 	(method (type) 'jail))
 	
+(define-class (food name)
+	(parent (thing name)))
+	
+(define-class (bagel)
+	(parent (food 'bagel)))
+
+(define-class (restaurant name type-of-food price-for-one)
+	(parent (place name))
+	(method (menu)
+		(list type-of-food price-for-one))
+	(method (sell person food-person-wants)
+		(let ((food (instantiate type-of-food)))
+			(if (eq? food-person-wants (ask food 'name))
+				(if (ask person 'pay-money price-for-one) 
+					food 
+					(begin (error "Not enough funds") #f))
+				(error "We don't sell those here -- " food-person-wants)))))
+				; not enough funds to pay for one food unit if returns #f
+	
 				
 (define-class (ticket name number)
 	(parent (thing name)))
@@ -270,20 +300,12 @@
   (instance-vars
    (behavior 'steal))
   (method (type) 'thief)
-  (method (go-directly-to new-place)
-	     (ask place 'exit self)
-	     (announce-move name place new-place)
-	     (for-each
-	      (lambda (p)
-		(ask place 'gone p)
-		(ask new-place 'appear p))
-	      possessions)
-	     (set! place new-place)
-	     (ask new-place 'enter self))
 
   (method (notice person)
     (if (eq? behavior 'run)
-		(ask self 'go (pick-random (ask (usual 'place) 'exits)))
+		(let ((exits (ask (usual 'place) 'exits)))
+			(if (not (empty? exits))
+				(ask self 'go (pick-random exits))))
 		(let ((food-things
 			   (filter (lambda (thing)
 				 (and (edible? thing)
@@ -304,7 +326,7 @@
 		(if (eq? (ask person 'type) 'thief)
 			(begin
 				(display "Stop! Thief!\n")
-				(format #t "~A was apprehended" (ask person 'name))
+				(format #t "~A was apprehended\n" (ask person 'name))
 				(for-each (lambda (item) (ask person 'lose item)) (ask person 'possessions))
 				(ask person 'go-directly-to station)))))
 	
