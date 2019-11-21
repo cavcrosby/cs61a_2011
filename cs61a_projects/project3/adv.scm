@@ -90,6 +90,17 @@
 	(let ((food (ask place 'sell self food-person-wants)))
 		(if food
 			(set! possessions (cons food possessions)))))
+  (method (eat)
+	(set! possessions (flatmap
+						(lambda (item) 
+							(if (ask item 'edible?)
+								(begin 
+									(ask (ask self 'place) 'gone item) 
+									(ask self 'put 'strength (+ (ask self 'strength) (ask item 'calories)))
+									(ask item 'change-possessor 'no-one)
+									'())
+								(list item)))
+								possessions)))
   (method (look-around)
     (map (lambda (obj) (ask obj 'name))
 	 (filter (lambda (thing) (not (eq? thing self)))
@@ -115,15 +126,23 @@
 		  (list (ask place 'name) thing)))
 	  ((memq thing possessions) (error "You already have it!"))
 	  (else
-	   (announce-take name thing)
-	   (set! possessions (cons thing possessions))
-	       
+	  
 	   ;; If somebody already has this object...
 		(let ((possessor (ask thing 'possessor)))
 			(if (not (equal? 'no-one possessor))
-				(begin (ask possessor 'lose thing) (ask thing 'change-possessor self) (have-fit possessor))
-				(ask thing 'change-possessor self)))
-	   'taken)))
+				(if (ask thing 'may-take? self)
+					(begin 
+						(ask possessor 'lose thing) 
+						(ask thing 'change-possessor self) 
+						(have-fit possessor)
+						(announce-take name thing)
+						(set! possessions (cons thing possessions)))
+					(format #t "~A is to strong!~%" (ask possessor 'name)))
+				(begin 
+					(announce-take name thing)
+					(set! possessions (cons thing possessions))
+					(ask thing 'change-possessor self))))
+	   )))
 
   (method (lose thing)
     (set! possessions (delete thing possessions))
@@ -154,6 +173,11 @@
 	(parent (basic-object name))
 	(instance-vars (possessor 'no-one))
 	(method (type) 'thing)
+	(method (may-take? receiver)
+		(let ((possessor (ask self 'possessor)))
+			(if (> (ask receiver 'strength) (ask possessor 'strength))
+				self
+				#f)))
 	(method (change-possessor new-possessor)
 		(set! possessor new-possessor)
 		'okay)
@@ -264,24 +288,32 @@
 		'())
 	(method (type) 'jail))
 	
-(define-class (food name)
-	(parent (thing name)))
+(define-class (food name calories)
+	(parent (thing name))
+	(instance-vars (edible? #t)))
 	
 (define-class (bagel)
-	(parent (food 'bagel)))
+	(parent (food 'bagel 200)))
+	
+(define-class (coke)
+	(parent (food 'coke 80)))
 
 (define-class (restaurant name type-of-food price-for-one)
 	(parent (place name))
 	(method (menu)
 		(list type-of-food price-for-one))
 	(method (sell person food-person-wants)
-		(let ((food (instantiate type-of-food)))
-			(if (eq? food-person-wants (ask food 'name))
-				(if (ask person 'pay-money price-for-one) 
-					food 
-					(begin (error "Not enough funds") #f))
-				(error "We don't sell those here -- " food-person-wants)))))
-				; not enough funds to pay for one food unit if returns #f
+		(if (eq? (ask person 'type) 'police)
+			(let ((food (instantiate type-of-food)))
+				(if (eq? food-person-wants (ask food 'name))
+					(begin (display "Thank you for your service!\n") food)))
+			(let ((food (instantiate type-of-food)))
+				(if (eq? food-person-wants (ask food 'name))
+					(if (ask person 'pay-money price-for-one) 
+						food 
+						(begin (error "Not enough funds") #f))
+					(error "We don't sell those here -- " food-person-wants))))))
+					; not enough funds to pay for one food unit if returns #f
 	
 				
 (define-class (ticket name number)
@@ -290,13 +322,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Implementation of thieves for part two
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(define *foods* '(pizza potstickers coffee coke))
-
-(define (edible? thing)
-  (member? (ask thing 'name) *foods*))
+(define (edible? food)
+  (ask food 'edible?))
 
 (define-class (thief name initial-place)
   (parent (person name initial-place))
+  (initialize (ask self 'put 'strength 300))
   (instance-vars
    (behavior 'steal))
   (method (type) 'thief)
@@ -320,12 +351,12 @@
 			   
 (define-class (police name initial-place station)
 	(parent (person name initial-place))
-	(initialize (if (not (and (procedure? station) (equal? (ask station 'type) 'jail))) (error "Police must be created initially in a station/jail -" station)))
+	(initialize (if (not (and (procedure? station) (equal? (ask station 'type) 'jail))) (error "Police must be created initially in a station/jail -" station) (ask self 'put 'strength 1000)))
 	(method (type) 'police)
 	(method (notice person)
 		(if (eq? (ask person 'type) 'thief)
 			(begin
-				(display "Stop! Thief!\n")
+				(display "Crime Does Not Pay!\n")
 				(format #t "~A was apprehended\n" (ask person 'name))
 				(for-each (lambda (item) (ask person 'lose item)) (ask person 'possessions))
 				(ask person 'go-directly-to station)))))

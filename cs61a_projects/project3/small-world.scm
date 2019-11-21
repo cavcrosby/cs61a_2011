@@ -29,9 +29,14 @@
 (define homework-box (instantiate thing 'homework-box))
 (ask 61A-Lab 'appear homework-box)
 
-(define Coke (instantiate thing 'Coke))
-(ask Lounge 'appear Coke)
-(ask Conner 'take Coke)
+(define coke (instantiate coke))
+(define bagel (instantiate bagel)) 
+(define pen (instantiate thing 'pen))
+(ask Lounge 'appear coke)
+(ask Lounge 'appear bagel)
+(ask Lounge 'appear pen)
+(ask Conner 'take coke)
+(ask Conner 'take pen)
 
 (define laba (instantiate person 'Lab-assistant 61A-Lab))
 
