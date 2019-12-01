@@ -1,0 +1,6 @@
+((lambda (f n)
+	((lambda (map) (map map f n))
+		(lambda (map f n)
+			(if (null? n)
+				'()
+				(cons (f (car n)) (map map f (cdr n))) )) ))
