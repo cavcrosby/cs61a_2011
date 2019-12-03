@@ -47,28 +47,26 @@
           "Unknown procedure type -- APPLY" procedure))))
 
 
-; (define (list-of-values exps env)
-	; (if (no-operands? exps)
-		; '()
-		; (let ((value-to-add (list-of-values-left exps env)))
-		   ; (cons (mc-eval value-to-add env)
-				 ; (list-of-values (rest-operands exps) env)))))
+(define (list-of-values exps env)
+	(if (no-operands? exps)
+		'()
+		(cons (mc-eval (first exps) env)
+				 (list-of-values (rest-operands exps) env))))
 			
-(define (list-of-values-left exps env)
-	(define (iter exps mc-values)
-		(if (no-operands? exps)
-			mc-values
-			(let ((value-to-add (mc-eval (first-exp exps) env)))
-				(iter (rest-exps exps) (cons value-to-add mc-values)))))
-	(iter exps '()))
+; (define (list-of-values exps env)
+		; (if (no-operands? exps)
+			; '()
+			; (let ((value-to-add (mc-eval (first-exp exps) env)))
+				; (cons (mc-eval value-to-add env)
+					 ; (list-of-values (rest-operands exps) env))))) ; E4.1
 
-(define (list-of-values exps env) ; this should evaluate expressions right to left
-	(define (iter exps mc-values)
-		(if (no-operands? exps)
-			mc-values
-			(let ((value-to-add (mc-eval (last-exp exps) env)))
-				(iter (but-last exps) (cons value-to-add mc-values)))))
-	(iter exps '()))
+; (define (list-of-values exps env) ; this should evaluate expressions right to left
+	; (define (iter exps mc-values)
+		; (if (no-operands? exps)
+			; mc-values
+			; (let ((value-to-add (mc-eval (last-exp exps) env)))
+				; (iter (but-last exps) (cons value-to-add mc-values))))) E4.1
+	; (iter exps '()))
 	
 		
 
@@ -172,9 +170,10 @@
 		(last-exp (rest-exps seq))))
 (define (rest-exps seq) (cdr seq))
 (define (but-last seq)
-	(if (last-exp? (last-exp? seq)) ; next to last?
-		seq
-		(but-last (rest-exps seq))))
+	(cond ((last-exp? seq) '())
+		  ((last-exp? (rest-exps seq)) (list (car seq)))  ; next to last
+		  (else
+			(cons (first-exp seq) (but-last (rest-exps seq))))))
 		
 		
 (define (sequence->exp seq)
