@@ -26,6 +26,7 @@
 	((begin? exp) 
 	 (eval-sequence (begin-actions exp) env))
 	((cond? exp) (mc-eval (cond->if exp) env))
+	((or? exp) (eval-or (operands exp) env))
 	((application? exp)
 	 (mc-apply (mc-eval (operator exp) env)
 		   (list-of-values (operands exp) env)))
@@ -57,7 +58,18 @@
   (if (true? (mc-eval (if-predicate exp) env))
       (mc-eval (if-consequent exp) env)
       (mc-eval (if-alternative exp) env)))
-
+	  
+(define (eval-or exp env)
+	(define (iter exp)
+		(let ((value (mc-eval (first-exp exp) env)))
+			(cond ((last-exp? exp) value)
+				  ((not (eq? value #f)) value)
+				  (else (iter (rest-exps exp))))))
+	(if (or (null? exp))
+		#f
+		(iter exp)))
+		
+		
 (define (eval-sequence exps env)
   (cond ((last-exp? exps) (mc-eval (first-exp exps) env))
         (else (mc-eval (first-exp exps) env)
@@ -127,6 +139,10 @@
 
 
 (define (if? exp) (tagged-list? exp 'if))
+
+(define (or? exp) (tagged-list? exp 'or))
+
+(define (and? exp) (tagged-list? exp 'and))
 
 (define (if-predicate exp) (cadr exp))
 

@@ -48,10 +48,27 @@
 
 
 (define (list-of-values exps env)
-  (if (no-operands? exps)
-      '()
-      (cons (mc-eval (first-operand exps) env)
-            (list-of-values (rest-operands exps) env))))
+	(if (no-operands? exps)
+		'()
+		(cons (mc-eval (first exps) env)
+				 (list-of-values (rest-operands exps) env))))
+			
+; (define (list-of-values exps env)
+		; (if (no-operands? exps)
+			; '()
+			; (let ((value-to-add (mc-eval (first-exp exps) env)))
+				; (cons (mc-eval value-to-add env)
+					 ; (list-of-values (rest-operands exps) env))))) ; E4.1
+
+; (define (list-of-values exps env) ; this should evaluate expressions right to left
+	; (define (iter exps mc-values)
+		; (if (no-operands? exps)
+			; mc-values
+			; (let ((value-to-add (mc-eval (last-exp exps) env)))
+				; (iter (but-last exps) (cons value-to-add mc-values))))) E4.1
+	; (iter exps '()))
+	
+		
 
 (define (eval-if exp env)
   (if (true? (mc-eval (if-predicate exp) env))
@@ -147,8 +164,18 @@
 
 (define (last-exp? seq) (null? (cdr seq)))
 (define (first-exp seq) (car seq))
+(define (last-exp seq)
+	(if (last-exp? seq)
+		(car seq)
+		(last-exp (rest-exps seq))))
 (define (rest-exps seq) (cdr seq))
-
+(define (but-last seq)
+	(cond ((last-exp? seq) '())
+		  ((last-exp? (rest-exps seq)) (list (car seq)))  ; next to last
+		  (else
+			(cons (first-exp seq) (but-last (rest-exps seq))))))
+		
+		
 (define (sequence->exp seq)
   (cond ((null? seq) seq)
         ((last-exp? seq) (first-exp seq))

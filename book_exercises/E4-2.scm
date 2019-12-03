@@ -1,3 +1,6 @@
+;;; a) Louis's evaluator, with it's cond clause shaped to check for applications for, will see any assignment (e.g. define) procedure as a normal procedure and not as a special form (meaning it will evaluate all it arguments).
+;
+
 ;;;;METACIRCULAR EVALUATOR FROM CHAPTER 4 (SECTIONS 4.1.1-4.1.4) of
 ;;;; STRUCTURE AND INTERPRETATION OF COMPUTER PROGRAMS
 
@@ -16,6 +19,10 @@
   (cond ((self-evaluating? exp) exp)
 	((variable? exp) (lookup-variable-value exp env))
 	((quoted? exp) (text-of-quotation exp))
+	((application? exp)
+	 (let ((exp (rest exp))) ; need to look past call b)
+		 (mc-apply (mc-eval (operator exp) env)
+			   (list-of-values (operands exp) env))))
 	((assignment? exp) (eval-assignment exp env))
 	((definition? exp) (eval-definition exp env))
 	((if? exp) (eval-if exp env))
@@ -26,9 +33,6 @@
 	((begin? exp) 
 	 (eval-sequence (begin-actions exp) env))
 	((cond? exp) (mc-eval (cond->if exp) env))
-	((application? exp)
-	 (mc-apply (mc-eval (operator exp) env)
-		   (list-of-values (operands exp) env)))
 	(else
 	 (error "Unknown expression type -- EVAL" exp))))
 
@@ -85,6 +89,9 @@
 
 (define (quoted? exp)
   (tagged-list? exp 'quote))
+  
+(define (call? exp)
+	(tagged-list? exp 'call))
 
 (define (text-of-quotation exp) (cadr exp))
 
@@ -157,7 +164,7 @@
 (define (make-begin seq) (cons 'begin seq))
 
 
-(define (application? exp) (pair? exp))
+(define (application? exp) (and (pair? exp) (call? exp)))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
 
@@ -372,4 +379,6 @@
 (define (mce)
   (set! the-global-environment (setup-environment))
   (driver-loop))
+
+
 
