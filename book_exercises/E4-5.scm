@@ -26,8 +26,6 @@
 	((begin? exp) 
 	 (eval-sequence (begin-actions exp) env))
 	((cond? exp) (mc-eval (cond->if exp) env))
-	((or? exp) (eval-or (operands exp) env))
-	((and? exp) (eval-and (operands exp) env))
 	((application? exp)
 	 (mc-apply (mc-eval (operator exp) env)
 		   (list-of-values (operands exp) env)))
@@ -59,28 +57,7 @@
   (if (true? (mc-eval (if-predicate exp) env))
       (mc-eval (if-consequent exp) env)
       (mc-eval (if-alternative exp) env)))
-	  
-(define (eval-or exp env)
-	(define (iter exp)
-		(let ((value (mc-eval (first-exp exp) env)))
-			(cond ((last-exp? exp) value)
-				  ((not (eq? value #f)) #f)
-				  (else (iter (rest-exps exp))))))
-	(if (null? exp)
-		#f
-		(iter exp)))
-		
-(define (eval-and exp env)
-	(define (iter exp)
-		(let ((value (mc-eval (first-exp exp) env)))
-			(cond ((last-exp? exp) value)
-				  ((eq? value #f) value)
-				  (else (iter (rest-exps exp))))))
-	(if (null? exp)
-		#t
-		(iter exp)))
-		
-		
+
 (define (eval-sequence exps env)
   (cond ((last-exp? exps) (mc-eval (first-exp exps) env))
         (else (mc-eval (first-exp exps) env)
@@ -151,10 +128,6 @@
 
 (define (if? exp) (tagged-list? exp 'if))
 
-(define (or? exp) (tagged-list? exp 'or))
-
-(define (and? exp) (tagged-list? exp 'and))
-
 (define (if-predicate exp) (cadr exp))
 
 (define (if-consequent exp) (caddr exp))
@@ -204,8 +177,11 @@
 
 (define (cond-actions clause) (cdr clause))
 
+(define (cond-pipe? clause) (eq? (cadr clause) '=>))
+
 (define (cond->if exp)
   (expand-clauses (cond-clauses exp)))
+  
 
 (define (expand-clauses clauses)
   (if (null? clauses)
@@ -213,13 +189,18 @@
       (let ((first (car clauses))
             (rest (cdr clauses)))
         (if (cond-else-clause? first)
-            (if (null? rest)
-                (sequence->exp (cond-actions first))
-                (error "ELSE clause isn't last -- COND->IF"
-                       clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+			(if (null? rest)
+				(sequence->exp (cond-actions first))
+				(error "ELSE clause isn't last -- COND->IF"
+					   clauses))
+		   (if (cond-pipe? first)
+				(make-if 
+					(cond-predicate first)
+					(make-lambda '() (list (caddr first) (cond-predicate first)))
+					(expand-clauses rest))
+				(make-if (cond-predicate first)
+						 (sequence->exp (cond-actions first))
+						 (expand-clauses rest)))))))
 
 ;;;SECTION 4.1.3
 
@@ -399,4 +380,5 @@
 (define (mce)
   (set! the-global-environment (setup-environment))
   (driver-loop))
+
 
