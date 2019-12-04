@@ -1,3 +1,5 @@
+make "x 20
+
 to fun1 :x
 print fun2
 end
@@ -6,20 +8,3 @@ to fun2
 output :x
 end
 
-to greet :person
-say [how are you,]
-end
-
-to pr2nd :thing
-print first bf :thing
-end
-
-to say :saying
-print sentence :saying :person
-end
-
-to second :stuff
-output first bf :stuff
-end
-
-Make "x 20
