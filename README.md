@@ -20,6 +20,7 @@ Unfortunately the homework answers for this course and semester might be impossi
   - Link 1: https://github.com/fgalassi/cs61a-sp11
   - Link 2: https://wizardbook.wordpress.com/solutions-index/
   - Link 3: http://www-inst.eecs.berkeley.edu/~instcd/inst-cd/classes/cs61a/lib/ (These are the programs used by the class, may or may not be exact)
+  - Link 4: https://people.eecs.berkeley.edu/~bh/announce (Berkley Logo (5.5) is used later in the course, this page will direct you into getting a working binary)
   
  ## Other Comments/Contributing
  
