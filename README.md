@@ -2,7 +2,7 @@
 
 This is my attempt to complete the course 'CS61A' taught at Berkeley. This instance of the course was in the Spring 2011.
 
-* The book they use for this course is Structrue And Implementation Of Computer Programs.
+* The book they use for this course is, 'Structrue And Implementation Of Computer Programs' (better known as SICP). Below are links to the book and other resources.
   - Link 1: https://web.mit.edu/alexmv/6.037/sicp.pdf
   - Link 2: https://mitpress.mit.edu/sites/default/files/sicp/index.html
 * Video Lectures: http://webcast.berkeley.edu/playlist#c,s,Spring_2011,3E89002AA9B9879E
