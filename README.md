@@ -2,7 +2,7 @@
 
 This is my attempt to complete the course 'CS61A' taught at Berkeley. This instance of the course was in the Spring 2011.
 
-* The book they use for this course is, 'Structrue And Implementation Of Computer Programs' (better known as SICP). Below are links to the book and other resources.
+* The book they use for this course is, 'Structure And Implementation Of Computer Programs' (better known as SICP). Below are links to the book and other resources.
   - Link 1: https://web.mit.edu/alexmv/6.037/sicp.pdf
   - Link 2: https://mitpress.mit.edu/sites/default/files/sicp/index.html
 * Video Lectures: http://webcast.berkeley.edu/playlist#c,s,Spring_2011,3E89002AA9B9879E
@@ -20,7 +20,7 @@ Unfortunately the homework answers for this course and semester might be impossi
   - Link 1: https://github.com/fgalassi/cs61a-sp11
   - Link 2: https://wizardbook.wordpress.com/solutions-index/
   - Link 3: http://www-inst.eecs.berkeley.edu/~instcd/inst-cd/classes/cs61a/lib/ (These are the programs used by the class, may or may not be exact)
-  - Link 4: https://people.eecs.berkeley.edu/~bh/announce (Berkley Logo (5.5) is used later in the course, this page will direct you into getting a working binary)
+  - Link 4: https://people.eecs.berkeley.edu/~bh/announce (Berkeley Logo (5.5) is used later in the course, this page will direct you into getting a working binary)
 
 ## License
 
