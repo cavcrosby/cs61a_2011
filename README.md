@@ -21,7 +21,3 @@ Unfortunately the homework answers for this course and semester might be impossi
   - Link 2: https://wizardbook.wordpress.com/solutions-index/
   - Link 3: http://www-inst.eecs.berkeley.edu/~instcd/inst-cd/classes/cs61a/lib/ (These are the programs used by the class, may or may not be exact)
   - Link 4: https://people.eecs.berkeley.edu/~bh/announce (Berkley Logo (5.5) is used later in the course, this page will direct you into getting a working binary)
-  
- ## Other Comments/Contributing
- 
- If anyone else is working through the same course/book, I would be happy if we could study together. Shoot me an email if you are interested in that.
