@@ -5,12 +5,12 @@ This is my attempt to complete the course 'CS61A' taught at Berkeley. This insta
 * The book they use for this course is, 'Structure And Implementation Of Computer Programs' (better known as SICP). Below are links to the book and other resources.
   - Link 1: https://web.mit.edu/alexmv/6.037/sicp.pdf
   - Link 2: https://mitpress.mit.edu/sites/default/files/sicp/index.html
-* Video Lectures: http://webcast.berkeley.edu/playlist#c,s,Spring_2011,3E89002AA9B9879E
-* Homework: http://wla.berkeley.edu/~cs61a/reader/nodate-hw.pdf
-* Projects: http://wla.berkeley.edu/~cs61a/reader/vol1.html
-* Midterms & Final: http://wla.berkeley.edu/~cs61a/reader/vol2.html
+* Video Lectures: https://archive.org/details/ucberkeley-webcast-PL3E89002AA9B9879E
+* Homework: https://inst.eecs.berkeley.edu/~cs61a/reader/nodate-hw.pdf
+* Projects: https://inst.eecs.berkeley.edu/~cs61a/reader/vol1.html
+* Midterms & Final: https://inst.eecs.berkeley.edu/~cs61a/reader/vol2.html
 
-* Homepage: http://wla.berkeley.edu/~cs61a/sp11/ 
+* Homepage: https://inst.eecs.berkeley.edu/~cs61a/sp11/
 
 ## Homework Solutions
 
